@@ -6,37 +6,60 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using System.ComponentModel;
+using System.Collections.ObjectModel;
 
 namespace ExcelStockScraper
 {
-    class MainExecutingClass
+    class MainExecutingClass : INotifyPropertyChanged
     {
         StockSiteScraperController control = new StockSiteScraperController();
+        private ObservableCollection<StockData> _tickerCollection;
+        public event PropertyChangedEventHandler PropertyChanged;
+        private string _loggingText;
+
+        public ObservableCollection<StockData> TickerCollection
+        {
+            get
+            {
+                return _tickerCollection;
+            }
+            set
+            {
+                _tickerCollection = value;
+            }
+        }
+
+        public string LoggingText
+        {
+            get
+            {
+                return _loggingText;
+            }
+            set
+            {
+                _loggingText = value;
+                OnPropertyChanged("LoggingText");
+            }
+        }
+
+        public StockSiteScraperController StockSiteScraperController
+        { get; set; }
+
         void brad()
         {
-            int count = 0;
-
+            
             while (true)
             {
                 try
                 {
-                    control.ScrapeVOOFromWeb();
-                    control.ScrapeMGKFromWeb();
-                    control.ScrapeVONGFromWeb();
-                    control.ScrapeVUGFromWeb();
+                    TickerCollection =  control.StockDataCollection();
+                    //control.ScrapeVOOFromWeb();
+                    //control.ScrapeMGKFromWeb();
+                    //control.ScrapeVONGFromWeb();
+                    //control.ScrapeVUGFromWeb();
                     control.UpdateStockValue(StockSiteScraperController.VOO, StockSiteScraperController.MGK, StockSiteScraperController.VONG, StockSiteScraperController.VUG);
+                    LoggingText = control.LoggingText();
                     Thread.Sleep(10);
-                    count++;
-                    if (count % 1 == 0)
-                    {
-                        control.LoggingText = count + "- VOO: " + StockSiteScraperController.VOO + " MGK: " + StockSiteScraperController.MGK + " VONG: " + StockSiteScraperController.VONG + " VUG: " + StockSiteScraperController.VUG;
-                        //Console.WriteLine(count + "- VOO: " + StockSiteScraperController.VOO + " MGK: " + StockSiteScraperController.MGK + " VONG: " + StockSiteScraperController.VONG + " VUG: " + StockSiteScraperController.VUG);
-                        if (count == 100)
-                        {
-                            count = 0;
-                            Console.Clear();
-                        }
-                    }
                 }
                 catch (Exception ex)
                 {
@@ -47,9 +70,21 @@ namespace ExcelStockScraper
 
         }
 
+        public void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        async Task RunTaskASync()
+        {
+            await Task.Run(() => brad());
+        }
+
         public MainExecutingClass()
         {
-            brad();
+            
+            RunTaskASync();
+
         }
 
 
