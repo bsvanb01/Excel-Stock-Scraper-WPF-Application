@@ -16,3 +16,21 @@ D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\ob
 D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\ExcelStockScraper.csproj.CopyComplete
 D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\ExcelStockScraper.exe
 D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\ExcelStockScraper.pdb
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\bin\x86\Debug\ExcelStockScraper.exe.config
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\bin\x86\Debug\ExcelStockScraper.exe
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\bin\x86\Debug\ExcelStockScraper.pdb
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\bin\x86\Debug\HtmlAgilityPack.dll
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\bin\x86\Debug\HtmlAgilityPack.pdb
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\bin\x86\Debug\HtmlAgilityPack.xml
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\MainWindow.g.cs
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\App.g.cs
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\ExcelStockScraper_MarkupCompile.cache
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\ExcelStockScraper_MarkupCompile.lref
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\MainWindow.baml
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\ExcelStockScraper.g.resources
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\ExcelStockScraper.Properties.Resources.resources
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\ExcelStockScraper.csproj.GenerateResource.cache
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\ExcelStockScraper.csproj.CopyComplete
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\ExcelStockScraper.exe
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\ExcelStockScraper.pdb
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\ExcelStockScraper.csprojAssemblyReference.cache

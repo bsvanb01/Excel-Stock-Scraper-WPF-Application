@@ -20,22 +20,28 @@
             <RowDefinition/>
         </Grid.RowDefinitions>
 
+
         <TextBox Name="LoggingText"
                  IsReadOnly="true"
+                 TextWrapping="Wrap"
+                 VerticalScrollBarVisibility="Visible"
                  Text="{Binding Path=LoggingText}"
                  Grid.Column="0" 
                  Grid.Row="2" 
                  Grid.ColumnSpan="4"
                  Background="Aqua"
-                 TextElement.FontSize="20"
+                 TextElement.FontSize="18"
                  />
         
+
         <Label Name="TickerControllerArea"
                Grid.Column="3" 
                Grid.Row="0"
                Grid.RowSpan="2"
                Grid.ColumnSpan="1"
                Background="Red"/>
+        
+        <Button Command="{Binding Path=AddUserInputTicker}" />
 
 
 

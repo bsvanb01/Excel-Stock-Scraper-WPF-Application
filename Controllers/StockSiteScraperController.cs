@@ -1,8 +1,13 @@
-﻿using HtmlAgilityPack;
+﻿using ExcelStockScraper.Handlers;
+using HtmlAgilityPack;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Net;
+using System.Text;
+using System.Web;
+using System.Windows.Input;
 using Excel = Microsoft.Office.Interop.Excel;
 
 namespace ExcelStockScraper.Controllers
@@ -33,12 +38,23 @@ namespace ExcelStockScraper.Controllers
         private static string _vong;
         private static string _vug;
         private static ObservableCollection<StockData> _tickerCollection;
-        string[] tickerArray;
+        private static List<string> _excelUpdateString;
+        private ICommand _addUserInputTicker;
+        string[] _userTickerInput;
         private static string stockValueElement = "//span[@class='Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)']";
         int count = 1;
+        int countTracker = 1;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
+
+        public ICommand AddUserInputTicker
+        {
+            get
+            {
+                return _addUserInputTicker ?? (_addUserInputTicker = new CommandHandler(() => AddTicker(), () => CanExecute));
+            }
+        }
 
         public ObservableCollection<StockData> TickerCollection
         {
@@ -52,49 +68,84 @@ namespace ExcelStockScraper.Controllers
             }
         }
 
-        public static string VOO
+        public string[] UserTickerInput
         {
             get
             {
-                return _voo;
+                return _userTickerInput;
             }
             set
             {
-                _voo = value;
-            }
-        }
-        public static string MGK
-        {
-            get
-            {
-                return _mgk;
-            }
-            set
-            {
-                _mgk = value;
+                _userTickerInput = value;
             }
         }
 
-        public static string VONG
+        public List<string> ExcelUpdateString
         {
             get
             {
-                return _vong;
+                return _excelUpdateString;
             }
             set
             {
-                _vong = value;
+                _excelUpdateString = value;
             }
         }
-        public static string VUG
+
+        #region Unused properties
+        //public static string VOO
+        //{
+        //    get
+        //    {
+        //        return _voo;
+        //    }
+        //    set
+        //    {
+        //        _voo = value;
+        //    }
+        //}
+
+        //public static string MGK
+        //{
+        //    get
+        //    {
+        //        return _mgk;
+        //    }
+        //    set
+        //    {
+        //        _mgk = value;
+        //    }
+        //}
+
+        //public static string VONG
+        //{
+        //    get
+        //    {
+        //        return _vong;
+        //    }
+        //    set
+        //    {
+        //        _vong = value;
+        //    }
+        //}
+        //public static string VUG
+        //{
+        //    get
+        //    {
+        //        return _vug;
+        //    }
+        //    set
+        //    {
+        //        _vug = value;
+        //    }
+        //}
+        #endregion
+
+        public bool CanExecute
         {
             get
             {
-                return _vug;
-            }
-            set
-            {
-                _vug = value;
+                return true;
             }
         }
 
@@ -104,6 +155,7 @@ namespace ExcelStockScraper.Controllers
         public StockSiteScraperController()
         {
             TickerCollection = new ObservableCollection<StockData>();
+            ExcelUpdateString = new List<string>();
         }
 
         public void OnPropertyChanged(string propertyName)
@@ -119,105 +171,128 @@ namespace ExcelStockScraper.Controllers
         {
             HtmlWeb web = new HtmlWeb();
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            tickerArray = new string[] {"VOO","AAPL"};
-
-            foreach(string ticker in tickerArray)
+            UserTickerInput = AddTicker();
+            if(UserTickerInput.Length != 0)
             {
-                HtmlAgilityPack.HtmlDocument doc = web.Load("https://finance.yahoo.com/quote/" + ticker + "/");
-                var currentValue = doc.DocumentNode.SelectSingleNode(stockValueElement).InnerHtml;
-                TickerCollection.Add(new StockData { Ticker = ticker, CurrentValue = currentValue});
+                foreach (string ticker in UserTickerInput)
+                {
+                    HtmlAgilityPack.HtmlDocument doc = web.Load("https://finance.yahoo.com/quote/" + ticker + "/");
+                    var currentValue = doc.DocumentNode.SelectSingleNode(stockValueElement).InnerHtml;
+                    TickerCollection.Add(new StockData { Ticker = ticker, CurrentValue = currentValue });
+                }
             }
+
 
             return TickerCollection;
         }
 
-        public string ScrapeVOOFromWeb()
+        public string[] AddTicker()
         {
-            HtmlWeb web = new HtmlWeb();
-
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            HtmlAgilityPack.HtmlDocument doc = web.Load("https://finance.yahoo.com/quote/voo/");
-            VOO = doc.DocumentNode.SelectSingleNode(stockValueElement).InnerHtml;
-
-            return VOO;
+            UserTickerInput = new string[] { "VOO", "MGK" };
+            return UserTickerInput;
         }
 
-        public string ScrapeMGKFromWeb()
-        {
-            HtmlWeb web = new HtmlWeb();
+        #region oldscrapemethods
+        //public string ScrapeVOOFromWeb()
+        //{
+        //    HtmlWeb web = new HtmlWeb();
 
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            HtmlAgilityPack.HtmlDocument doc = web.Load("https://finance.yahoo.com/quote/mgk/");
-            MGK = doc.DocumentNode.SelectSingleNode(stockValueElement).InnerHtml;
+        //    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+        //    HtmlAgilityPack.HtmlDocument doc = web.Load("https://finance.yahoo.com/quote/voo/");
+        //    VOO = doc.DocumentNode.SelectSingleNode(stockValueElement).InnerHtml;
 
-            return MGK;
-        }
+        //    return VOO;
+        //}
 
-        public string ScrapeVONGFromWeb()
-        {
-            HtmlWeb web = new HtmlWeb();
+        //public string ScrapeMGKFromWeb()
+        //{
+        //    HtmlWeb web = new HtmlWeb();
 
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            HtmlAgilityPack.HtmlDocument doc = web.Load("https://finance.yahoo.com/quote/vong/");
-            VONG = doc.DocumentNode.SelectSingleNode(stockValueElement).InnerHtml;
+        //    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+        //    HtmlAgilityPack.HtmlDocument doc = web.Load("https://finance.yahoo.com/quote/mgk/");
+        //    MGK = doc.DocumentNode.SelectSingleNode(stockValueElement).InnerHtml;
 
-            return VONG;
-        }
+        //    return MGK;
+        //}
 
-        public string ScrapeVUGFromWeb()
-        {
-            HtmlWeb web = new HtmlWeb();
+        //public string ScrapeVONGFromWeb()
+        //{
+        //    HtmlWeb web = new HtmlWeb();
 
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            HtmlAgilityPack.HtmlDocument doc = web.Load("https://finance.yahoo.com/quote/vug/");
-            VUG = doc.DocumentNode.SelectSingleNode(stockValueElement).InnerHtml;
+        //    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+        //    HtmlAgilityPack.HtmlDocument doc = web.Load("https://finance.yahoo.com/quote/vong/");
+        //    VONG = doc.DocumentNode.SelectSingleNode(stockValueElement).InnerHtml;
 
-            return VUG;
-        }
+        //    return VONG;
+        //}
+
+        //public string ScrapeVUGFromWeb()
+        //{
+        //    HtmlWeb web = new HtmlWeb();
+
+        //    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+        //    HtmlAgilityPack.HtmlDocument doc = web.Load("https://finance.yahoo.com/quote/vug/");
+        //    VUG = doc.DocumentNode.SelectSingleNode(stockValueElement).InnerHtml;
+
+        //    return VUG;
+        //}
+        #endregion
 
         public string LoggingText()
         {
             string loggingText = string.Empty;
+            StringBuilder sb = new StringBuilder();
+            
             if (count % 1 == 0)
             {
-                //loggingText = count + "- VOO: " + VOO + " MGK: " + MGK + " VONG: " + VONG + " VUG: " + VUG;
-                loggingText = "" + count;
-                foreach(StockData stockData in TickerCollection)
+                if (TickerCollection.Count > 1)
                 {
-                    loggingText = loggingText + " " + count + " -" + stockData.Ticker + ": " + stockData.CurrentValue;
+                    foreach (StockData stockData in TickerCollection)
+                    {
+                        loggingText = loggingText + " " + stockData.Ticker + ": " + stockData.CurrentValue;
+                    }
+                    loggingText = loggingText + Environment.NewLine;
+                    
+                    
+                    count++;
                 }
                 if (count == 100)
                 {
                     count = 0;
                     Console.Clear();
                 }
-                count++;
+                
             }
             return loggingText;
         }
 
 
-        public void UpdateStockValue(string VOO, string MGK, string VONG, string VUG)
+
+        public void UpdateStockValue(ObservableCollection<StockData> TickerCollection)
         {
 
             System.Data.OleDb.OleDbConnection MyConnection;
             System.Data.OleDb.OleDbCommand myCommand = new System.Data.OleDb.OleDbCommand();
 
-            MyConnection = new System.Data.OleDb.OleDbConnection("Provider=Microsoft.ACE.OLEDB.12.0;Data Source=K:\\BradFinances.xlsx; Extended Properties='Excel 12.0;HDR=YES; Mode=ReadWrite'");
+            MyConnection = new System.Data.OleDb.OleDbConnection("Provider=Microsoft.ACE.OLEDB.12.0;Data Source=M:\\BradFinances.xlsx; Extended Properties='Excel 12.0;HDR=YES; Mode=ReadWrite'");
             MyConnection.Open();
             myCommand.Connection = MyConnection;
 
-            string[] updateStockValueArray = new string[4]
+            foreach(StockData stockData in TickerCollection)
             {
-                "Update [Investment Data$] set Current_Stock_Prices = '" + VOO + "' where Tickers = 'VOO'",
-                "Update [Investment Data$] set Current_Stock_Prices = '" + MGK + "' where Tickers = 'MGK'",
-                "Update [Investment Data$] set Current_Stock_Prices = '" + VONG + "' where Tickers = 'VONG'",
-                "Update [Investment Data$] set Current_Stock_Prices = '" + VUG + "' where Tickers = 'VUG'"
+                ExcelUpdateString.Add("Update [Investment Data$] set Current_Stock_Prices = '" + stockData.CurrentValue + "' where Tickers = '" + stockData.Ticker + "'");
+            }
+            //string[] updateStockValueArray = new string[4]
+            //{
+            //    "Update [Investment Data$] set Current_Stock_Prices = '" + VOO + "' where Tickers = 'VOO'",
+            //    "Update [Investment Data$] set Current_Stock_Prices = '" + MGK + "' where Tickers = 'MGK'",
+            //    "Update [Investment Data$] set Current_Stock_Prices = '" + VONG + "' where Tickers = 'VONG'",
+            //    "Update [Investment Data$] set Current_Stock_Prices = '" + VUG + "' where Tickers = 'VUG'"
 
-            };
+            //};
 
 
-            foreach (string str in updateStockValueArray)
+            foreach (string str in ExcelUpdateString)
             {
                 myCommand.CommandText = str;
                 myCommand.ExecuteNonQuery();
@@ -226,7 +301,7 @@ namespace ExcelStockScraper.Controllers
             MyConnection.Close();
         }
 
-
+        #region delet
         public static void test()
         {
             Excel.Application oExcelApp = null;
@@ -249,6 +324,7 @@ namespace ExcelStockScraper.Controllers
             oExcelApp = (Excel.Application)System.Runtime.InteropServices.Marshal.GetActiveObject("Excel.Application");
             oExcelApp = null;
         }
+        #endregion
 
         #endregion
 

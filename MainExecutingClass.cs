@@ -42,6 +42,12 @@ namespace ExcelStockScraper
             }
         }
 
+        public MainExecutingClass()
+        {
+            RunTaskASync();
+        }
+
+
         public StockSiteScraperController StockSiteScraperController
         { get; set; }
 
@@ -52,13 +58,11 @@ namespace ExcelStockScraper
             {
                 try
                 {
-                    TickerCollection =  control.StockDataCollection();
-                    //control.ScrapeVOOFromWeb();
-                    //control.ScrapeMGKFromWeb();
-                    //control.ScrapeVONGFromWeb();
-                    //control.ScrapeVUGFromWeb();
-                    control.UpdateStockValue(StockSiteScraperController.VOO, StockSiteScraperController.MGK, StockSiteScraperController.VONG, StockSiteScraperController.VUG);
+                    TickerCollection = control.StockDataCollection();
+                    control.UpdateStockValue(TickerCollection);
+                    
                     LoggingText = control.LoggingText();
+                    //LoggingText = string.Empty;
                     Thread.Sleep(10);
                 }
                 catch (Exception ex)
@@ -80,12 +84,6 @@ namespace ExcelStockScraper
             await Task.Run(() => brad());
         }
 
-        public MainExecutingClass()
-        {
-            
-            RunTaskASync();
-
-        }
 
 
     }
