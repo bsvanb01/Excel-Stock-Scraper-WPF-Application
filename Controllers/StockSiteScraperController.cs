@@ -251,7 +251,7 @@ namespace ExcelStockScraper.Controllers
                     {
                         loggingText = loggingText + " " + stockData.Ticker + ": " + stockData.CurrentValue;
                     }
-                    loggingText = loggingText + Environment.NewLine;
+                    loggingText =  loggingText + "\n";
                     
                     
                     count++;
