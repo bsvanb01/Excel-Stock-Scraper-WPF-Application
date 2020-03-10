@@ -1,14 +1,13 @@
-﻿using ExcelStockScraper.Handlers;
-using HtmlAgilityPack;
+﻿using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Net;
 using System.Text;
-using System.Web;
-using System.Windows.Input;
+using System.Windows;
 using Excel = Microsoft.Office.Interop.Excel;
+using System.Linq;
 
 namespace ExcelStockScraper.Controllers
 {
@@ -26,35 +25,41 @@ namespace ExcelStockScraper.Controllers
             get; set;
         }
 
+        public double ItemMarginTop
+        {
+            get; set;
+        }
+
+        public double ItemMarginBottom
+        {
+            get; set;
+        }
+
+        public Thickness ItemMargins
+        {
+            get; set;
+        }
+
     }
 
     class StockSiteScraperController : INotifyPropertyChanged
     {
 
         #region Properties
-
-        private static string _voo;
-        private static string _mgk;
-        private static string _vong;
-        private static string _vug;
         private static ObservableCollection<StockData> _tickerCollection;
         private static List<string> _excelUpdateString;
-        private ICommand _addUserInputTicker;
-        string[] _userTickerInput;
+        List<string> _userTickerInput;
+        private bool _userInputTextBool = false;
+        private string _currentValue;
+        private string _loggingTextString;
         private static string stockValueElement = "//span[@class='Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)']";
         int count = 1;
-        int countTracker = 1;
+        HtmlAgilityPack.HtmlDocument doc;
+        HtmlWeb web = new HtmlWeb();
+        
+
 
         public event PropertyChangedEventHandler PropertyChanged;
-
-
-        public ICommand AddUserInputTicker
-        {
-            get
-            {
-                return _addUserInputTicker ?? (_addUserInputTicker = new CommandHandler(() => AddTicker(), () => CanExecute));
-            }
-        }
 
         public ObservableCollection<StockData> TickerCollection
         {
@@ -68,7 +73,7 @@ namespace ExcelStockScraper.Controllers
             }
         }
 
-        public string[] UserTickerInput
+        public List<string> UserTickerInput
         {
             get
             {
@@ -91,6 +96,32 @@ namespace ExcelStockScraper.Controllers
                 _excelUpdateString = value;
             }
         }
+
+        public string CurrentValue
+        {
+            get
+            {
+                return _currentValue;
+            }
+            set
+            {
+                _currentValue = value;
+                OnPropertyChanged("CurrentValue");
+            }
+        }
+        public string LoggingTextString
+        {
+            get
+            {
+                return _loggingTextString;
+            }
+            set
+            {
+                _loggingTextString = value;
+                OnPropertyChanged("LoggingTextString");
+            }
+        }
+
 
         #region Unused properties
         //public static string VOO
@@ -155,8 +186,10 @@ namespace ExcelStockScraper.Controllers
         public StockSiteScraperController()
         {
             TickerCollection = new ObservableCollection<StockData>();
+            UserTickerInput = new List<string>();
             ExcelUpdateString = new List<string>();
         }
+        
 
         public void OnPropertyChanged(string propertyName)
         {
@@ -171,26 +204,69 @@ namespace ExcelStockScraper.Controllers
         {
             HtmlWeb web = new HtmlWeb();
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            UserTickerInput = AddTicker();
-            if(UserTickerInput.Length != 0)
+
+            if(UserTickerInput.Count != 0)
             {
                 foreach (string ticker in UserTickerInput)
                 {
                     HtmlAgilityPack.HtmlDocument doc = web.Load("https://finance.yahoo.com/quote/" + ticker + "/");
                     var currentValue = doc.DocumentNode.SelectSingleNode(stockValueElement).InnerHtml;
-                    TickerCollection.Add(new StockData { Ticker = ticker, CurrentValue = currentValue });
+                    
+                    TickerCollection.Add(new StockData { Ticker = ticker, CurrentValue = currentValue});
                 }
             }
-
-
             return TickerCollection;
         }
 
-        public string[] AddTicker()
+
+
+
+        public void UpdateTickerData()
         {
-            UserTickerInput = new string[] { "VOO", "MGK" };
-            return UserTickerInput;
+            //UserTickerInput.Add("VOO");
+            //foreach (StockData stockData in TickerCollection)
+            //{
+            //    PullTickerData(stockData.Ticker);
+            //    TickerCollection.ToList().ForEach(x => x.Ticker = stockData.Ticker);
+
+
+            //    if(TickerCollection.Any(x=>x.Ticker == stockData.Ticker))
+            //    {
+            //        stockData.CurrentValue = CurrentValue;
+            //    }
+            //    //var results = TickerCollection.Where(data=>data.Ticker)
+
+            //}
+            
+            for (int i = 0; i < TickerCollection.Count;i++)
+            {
+                PullTickerData(TickerCollection[i].Ticker);
+                if (TickerCollection.Any(x => x.Ticker == TickerCollection[i].Ticker))
+                {
+                    TickerCollection[i].CurrentValue = CurrentValue;
+                }
+            }
+
         }
+
+        public void MainExecutingMethod()
+        {
+            if(TickerCollection.Count != 0)
+            {
+                UpdateTickerData();
+                LoggingTextString = LoggingText();
+            }
+        }
+
+        public void PullTickerData(string ticker)
+        {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            doc = web.Load("https://finance.yahoo.com/quote/" + ticker + "/");
+            CurrentValue = doc.DocumentNode.SelectSingleNode(stockValueElement).InnerHtml;
+        }
+    
+
+
 
         #region oldscrapemethods
         //public string ScrapeVOOFromWeb()
@@ -238,43 +314,41 @@ namespace ExcelStockScraper.Controllers
         //}
         #endregion
 
+        #region Logger
         public string LoggingText()
         {
             string loggingText = string.Empty;
-            StringBuilder sb = new StringBuilder();
-            
             if (count % 1 == 0)
             {
-                if (TickerCollection.Count > 1)
+                if (TickerCollection.Count > 0)
                 {
                     foreach (StockData stockData in TickerCollection)
                     {
                         loggingText = loggingText + " " + stockData.Ticker + ": " + stockData.CurrentValue;
                     }
-                    loggingText =  loggingText + "\n";
-                    
-                    
+                    loggingText = loggingText + "\n";
+
                     count++;
                 }
                 if (count == 100)
                 {
                     count = 0;
-                    Console.Clear();
+                    
                 }
                 
             }
             return loggingText;
         }
+        #endregion
 
-
-
+        #region Excel Updater
         public void UpdateStockValue(ObservableCollection<StockData> TickerCollection)
         {
 
             System.Data.OleDb.OleDbConnection MyConnection;
             System.Data.OleDb.OleDbCommand myCommand = new System.Data.OleDb.OleDbCommand();
 
-            MyConnection = new System.Data.OleDb.OleDbConnection("Provider=Microsoft.ACE.OLEDB.12.0;Data Source=M:\\BradFinances.xlsx; Extended Properties='Excel 12.0;HDR=YES; Mode=ReadWrite'");
+            MyConnection = new System.Data.OleDb.OleDbConnection("Provider=Microsoft.ACE.OLEDB.12.0;Data Source=K:\\BradFinances.xlsx; Extended Properties='Excel 12.0;HDR=YES; Mode=ReadWrite'");
             MyConnection.Open();
             myCommand.Connection = MyConnection;
 
@@ -282,15 +356,6 @@ namespace ExcelStockScraper.Controllers
             {
                 ExcelUpdateString.Add("Update [Investment Data$] set Current_Stock_Prices = '" + stockData.CurrentValue + "' where Tickers = '" + stockData.Ticker + "'");
             }
-            //string[] updateStockValueArray = new string[4]
-            //{
-            //    "Update [Investment Data$] set Current_Stock_Prices = '" + VOO + "' where Tickers = 'VOO'",
-            //    "Update [Investment Data$] set Current_Stock_Prices = '" + MGK + "' where Tickers = 'MGK'",
-            //    "Update [Investment Data$] set Current_Stock_Prices = '" + VONG + "' where Tickers = 'VONG'",
-            //    "Update [Investment Data$] set Current_Stock_Prices = '" + VUG + "' where Tickers = 'VUG'"
-
-            //};
-
 
             foreach (string str in ExcelUpdateString)
             {
@@ -300,6 +365,7 @@ namespace ExcelStockScraper.Controllers
 
             MyConnection.Close();
         }
+        #endregion
 
         #region delet
         public static void test()
