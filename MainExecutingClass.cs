@@ -148,7 +148,7 @@ namespace ExcelStockScraper
                     {
                         control.UpdateTickerData();
                         CurrentValue = control.CurrentValue;
-                        LoggingText = control.LoggingText();
+                        //LoggingText = control.LoggingText();
                         Thread.Sleep(10);
                     }
                 }

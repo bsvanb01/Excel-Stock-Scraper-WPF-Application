@@ -10,6 +10,8 @@ using Excel = Microsoft.Office.Interop.Excel;
 using System.Linq;
 using System.Configuration;
 using System.Xml;
+using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace ExcelStockScraper.Controllers
 {
@@ -190,17 +192,22 @@ namespace ExcelStockScraper.Controllers
             return CurrentValue;
         }
 
+
         public void CheckForConfigSettings()
         {
             var config = ConfigurationManager.OpenExeConfiguration(System.Reflection.Assembly.GetExecutingAssembly().Location);
             var savedTickers = ConfigurationManager.GetSection("savedTickers") as ConfigurationHandler;
+            if(savedTickers == null)
+            {
+
+            }
             var tickers = savedTickers.Tickers;
             if (tickers.Count != 0)
             {
                 foreach (TickerElement key in tickers)
                 {
                     UserTickerInput.Add(key.Name);
-                    TickerCollection.Add(new StockData { Ticker = key.Name, CurrentValue = PullTickerData(key.Name) });
+                    AddTickersToCollection(key.Name);
                 }
             }
             else
@@ -208,6 +215,15 @@ namespace ExcelStockScraper.Controllers
 
             }
 
+        }
+
+        private async Task AddTickersToCollection(string keyName)
+        {
+            
+            await Application.Current.Dispatcher.BeginInvoke(
+                DispatcherPriority.Background, new Action(() => {
+                    TickerCollection.Add(new StockData { Ticker = keyName, CurrentValue = PullTickerData(keyName) });
+                    }));
         }
 
         public void AddToConfigSettings(string ticker)
