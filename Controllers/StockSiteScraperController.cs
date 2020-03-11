@@ -8,6 +8,8 @@ using System.Text;
 using System.Windows;
 using Excel = Microsoft.Office.Interop.Excel;
 using System.Linq;
+using System.Configuration;
+using System.Xml;
 
 namespace ExcelStockScraper.Controllers
 {
@@ -47,9 +49,10 @@ namespace ExcelStockScraper.Controllers
 
         #region Properties
         private static ObservableCollection<StockData> _tickerCollection;
+        XmlDocument _xmlDoc;
         private static List<string> _excelUpdateString;
         List<string> _userTickerInput;
-        private bool _userInputTextBool = false;
+        
         private string _currentValue;
         private string _loggingTextString;
         private static string stockValueElement = "//span[@class='Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)']";
@@ -70,6 +73,20 @@ namespace ExcelStockScraper.Controllers
             set
             {
                 _tickerCollection = value;
+                OnPropertyChanged("TickerCollection");
+            }
+        }
+
+        public XmlDocument XmlDocument
+
+        {
+            get
+            {
+                return _xmlDoc;
+            }
+            set
+            {
+                _xmlDoc = value;
             }
         }
 
@@ -82,6 +99,7 @@ namespace ExcelStockScraper.Controllers
             set
             {
                 _userTickerInput = value;
+                OnPropertyChanged("UserTickerInput");
             }
         }
 
@@ -122,56 +140,6 @@ namespace ExcelStockScraper.Controllers
             }
         }
 
-
-        #region Unused properties
-        //public static string VOO
-        //{
-        //    get
-        //    {
-        //        return _voo;
-        //    }
-        //    set
-        //    {
-        //        _voo = value;
-        //    }
-        //}
-
-        //public static string MGK
-        //{
-        //    get
-        //    {
-        //        return _mgk;
-        //    }
-        //    set
-        //    {
-        //        _mgk = value;
-        //    }
-        //}
-
-        //public static string VONG
-        //{
-        //    get
-        //    {
-        //        return _vong;
-        //    }
-        //    set
-        //    {
-        //        _vong = value;
-        //    }
-        //}
-        //public static string VUG
-        //{
-        //    get
-        //    {
-        //        return _vug;
-        //    }
-        //    set
-        //    {
-        //        _vug = value;
-        //    }
-        //}
-        #endregion
-
         public bool CanExecute
         {
             get
@@ -185,6 +153,8 @@ namespace ExcelStockScraper.Controllers
 
         public StockSiteScraperController()
         {
+            XmlDocument = new XmlDocument();
+            XmlDocument.Load(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
             TickerCollection = new ObservableCollection<StockData>();
             UserTickerInput = new List<string>();
             ExcelUpdateString = new List<string>();
@@ -199,120 +169,74 @@ namespace ExcelStockScraper.Controllers
         
         #region Methods
 
-
-        public ObservableCollection<StockData> StockDataCollection()
-        {
-            HtmlWeb web = new HtmlWeb();
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-
-            if(UserTickerInput.Count != 0)
-            {
-                foreach (string ticker in UserTickerInput)
-                {
-                    HtmlAgilityPack.HtmlDocument doc = web.Load("https://finance.yahoo.com/quote/" + ticker + "/");
-                    var currentValue = doc.DocumentNode.SelectSingleNode(stockValueElement).InnerHtml;
-                    
-                    TickerCollection.Add(new StockData { Ticker = ticker, CurrentValue = currentValue});
-                }
-            }
-            return TickerCollection;
-        }
-
-
-
-
         public void UpdateTickerData()
         {
-            //UserTickerInput.Add("VOO");
-            //foreach (StockData stockData in TickerCollection)
-            //{
-            //    PullTickerData(stockData.Ticker);
-            //    TickerCollection.ToList().ForEach(x => x.Ticker = stockData.Ticker);
-
-
-            //    if(TickerCollection.Any(x=>x.Ticker == stockData.Ticker))
-            //    {
-            //        stockData.CurrentValue = CurrentValue;
-            //    }
-            //    //var results = TickerCollection.Where(data=>data.Ticker)
-
-            //}
-            
             for (int i = 0; i < TickerCollection.Count;i++)
             {
                 PullTickerData(TickerCollection[i].Ticker);
                 if (TickerCollection.Any(x => x.Ticker == TickerCollection[i].Ticker))
                 {
-                    TickerCollection[i].CurrentValue = CurrentValue;
+                    TickerCollection[i].CurrentValue = PullTickerData(TickerCollection[i].Ticker);
                 }
             }
 
         }
-
-        public void MainExecutingMethod()
-        {
-            if(TickerCollection.Count != 0)
-            {
-                UpdateTickerData();
-                LoggingTextString = LoggingText();
-            }
-        }
-
-        public void PullTickerData(string ticker)
+        public string PullTickerData(string ticker)
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             doc = web.Load("https://finance.yahoo.com/quote/" + ticker + "/");
             CurrentValue = doc.DocumentNode.SelectSingleNode(stockValueElement).InnerHtml;
+
+            return CurrentValue;
+        }
+
+        public void CheckForConfigSettings()
+        {
+            var config = ConfigurationManager.OpenExeConfiguration(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            var savedTickers = ConfigurationManager.GetSection("savedTickers") as ConfigurationHandler;
+            var tickers = savedTickers.Tickers;
+            if (tickers.Count != 0)
+            {
+                foreach (TickerElement key in tickers)
+                {
+                    UserTickerInput.Add(key.Name);
+                    TickerCollection.Add(new StockData { Ticker = key.Name, CurrentValue = PullTickerData(key.Name) });
+                }
+            }
+            else
+            {
+
+            }
+
+        }
+
+        public void AddToConfigSettings(string ticker)
+        {
+            var nodeRegion = XmlDocument.CreateElement("Ticker");
+            nodeRegion.SetAttribute("name", ticker);
+
+            XmlDocument.SelectSingleNode("//savedTickers/tickers").AppendChild(nodeRegion);
+            XmlDocument.Save(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
+            ConfigurationManager.RefreshSection("savedTickers/tickers");
+        }
+
+        public void RemoveFromConfigSettings(StockData tickerName)
+        {
+            try
+            {
+                XmlNode nodeTicker = XmlDocument.SelectSingleNode("//savedTickers/tickers/Ticker[@name=\'" + tickerName.Ticker + "\']");
+                nodeTicker.ParentNode.RemoveChild(nodeTicker);
+
+                XmlDocument.Save(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
+                ConfigurationManager.RefreshSection("savedTickers/tickers");
+            }
+            catch(Exception ex)
+            {
+
+            }
+
         }
     
-
-
-
-        #region oldscrapemethods
-        //public string ScrapeVOOFromWeb()
-        //{
-        //    HtmlWeb web = new HtmlWeb();
-
-        //    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-        //    HtmlAgilityPack.HtmlDocument doc = web.Load("https://finance.yahoo.com/quote/voo/");
-        //    VOO = doc.DocumentNode.SelectSingleNode(stockValueElement).InnerHtml;
-
-        //    return VOO;
-        //}
-
-        //public string ScrapeMGKFromWeb()
-        //{
-        //    HtmlWeb web = new HtmlWeb();
-
-        //    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-        //    HtmlAgilityPack.HtmlDocument doc = web.Load("https://finance.yahoo.com/quote/mgk/");
-        //    MGK = doc.DocumentNode.SelectSingleNode(stockValueElement).InnerHtml;
-
-        //    return MGK;
-        //}
-
-        //public string ScrapeVONGFromWeb()
-        //{
-        //    HtmlWeb web = new HtmlWeb();
-
-        //    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-        //    HtmlAgilityPack.HtmlDocument doc = web.Load("https://finance.yahoo.com/quote/vong/");
-        //    VONG = doc.DocumentNode.SelectSingleNode(stockValueElement).InnerHtml;
-
-        //    return VONG;
-        //}
-
-        //public string ScrapeVUGFromWeb()
-        //{
-        //    HtmlWeb web = new HtmlWeb();
-
-        //    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-        //    HtmlAgilityPack.HtmlDocument doc = web.Load("https://finance.yahoo.com/quote/vug/");
-        //    VUG = doc.DocumentNode.SelectSingleNode(stockValueElement).InnerHtml;
-
-        //    return VUG;
-        //}
-        #endregion
 
         #region Logger
         public string LoggingText()

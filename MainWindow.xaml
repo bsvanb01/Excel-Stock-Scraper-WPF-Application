@@ -42,36 +42,35 @@
                Background="Red"/>
 
 
-        <ScrollViewer VerticalScrollBarVisibility="Hidden" Height="230" Width="292" Grid.Column="3" Grid.Row="0" Grid.ColumnSpan="1" Grid.RowSpan="2" Margin="0,50,0,0">
-            <ItemsControl ItemsSource="{Binding Path=TickerCollection}">
-
-                <!--<ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <Canvas Width="250" Height="400"></Canvas>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>-->
-
-                <!--<ItemsControl.ItemContainerStyle>
-                    <Style TargetType="ContentPresenter">
-                        <Setter Property="Canvas.Right" Value="10"/>
-                        <Setter Property="Canvas.Left" Value="15"/>
-                        <Setter Property="Canvas.Top" Value="{Binding TopPos}"/>
-                        --><!--<Setter Property="FrameworkElement.Margin" Value="5"/>--><!--
-                    </Style>
-                </ItemsControl.ItemContainerStyle>-->
-
+        <!--<ScrollViewer VerticalScrollBarVisibility="Hidden" Height="230" Width="292" Grid.Column="3" Grid.Row="0" Grid.ColumnSpan="1" Grid.RowSpan="2" Margin="0,50,0,0">
+            <ItemsControl ItemsSource="{Binding TickerCollection}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Vertical" >
-                            <TextBlock Name="Ticker" Height="25" Text="{Binding CurrentValue, UpdateSourceTrigger=PropertyChanged}" TextElement.FontSize="15" Margin="30,10,0,0" />
-                            <Button Name="RemoveTicker" Command="{Binding Path=RemoveTickerCommand}" Height="20" Width="20"  Background="White" Content="X" IsEnabled="True" Margin="0,-30,-240,0"></Button>
+                            <TextBlock Name="Ticker" Height="25" Text="{Binding Ticker, UpdateSourceTrigger=PropertyChanged}" TextElement.FontSize="15" Margin="40,0,0,0"/>
+                            <TextBlock Name="CurrentValue" Height="25" Text="{Binding Path=CurrentValue, UpdateSourceTrigger=PropertyChanged}" TextElement.FontSize="15" Margin="100,-25,0,0" />
+                            <Button Name="RemoveTicker" Command="{Binding RemoveTickerCommand, Mode=OneWay}"  Height="20" Width="20"  Background="White" Content="X" IsEnabled="True" Margin="0,-30,-240,0"></Button>
                         </StackPanel>
-                        <!--<Button Background="Red" Margin="5,5,5" Content="X" Command="{Binding DataContext.AddUserInputTicker, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"></Button>-->
+                        --><!--<Button Background="Red" Margin="5,5,5" Content="X" Command="{Binding DataContext.AddUserInputTicker, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"></Button>--><!--
 
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
 
             </ItemsControl>
+        </ScrollViewer>-->
+        
+        <ScrollViewer VerticalScrollBarVisibility="Hidden" Height="230" Width="292" Grid.Column="3" Grid.Row="0" Grid.ColumnSpan="1" Grid.RowSpan="2" Margin="0,50,0,0">
+            <ListBox ItemsSource="{Binding TickerCollection}" SelectedItem="{Binding SelectedItemToRemove}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Vertical" >
+                            <TextBlock Name="Ticker" Height="25" Text="{Binding Ticker, UpdateSourceTrigger=PropertyChanged}" TextElement.FontSize="15" Margin="40,0,0,0"/>
+                            <TextBlock Name="CurrentValue" Height="25" Text="{Binding Path=CurrentValue}" TextElement.FontSize="15" Margin="100,-25,0,0" />
+                            <Button Name="RemoveTicker" Command="{Binding DataContext.RemoveTickerCommand, Mode=OneWay, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}" Height="20" Width="20"  Background="White" Content="X" IsEnabled="True" Margin="0,-30,-240,0"></Button>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
         </ScrollViewer>
 
         <Button Name="AddTicker" Width="25" Height="25" Grid.Column="3" Content="+" Command="{Binding Path=AddUserInputTickerCommand}" Margin="165,10,102,105"  />
