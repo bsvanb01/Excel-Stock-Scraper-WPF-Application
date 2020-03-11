@@ -12,6 +12,7 @@ using System.Configuration;
 using System.Xml;
 using System.Threading.Tasks;
 using System.Windows.Threading;
+using System.Runtime.InteropServices;
 
 namespace ExcelStockScraper.Controllers
 {
@@ -29,21 +30,6 @@ namespace ExcelStockScraper.Controllers
             get; set;
         }
 
-        public double ItemMarginTop
-        {
-            get; set;
-        }
-
-        public double ItemMarginBottom
-        {
-            get; set;
-        }
-
-        public Thickness ItemMargins
-        {
-            get; set;
-        }
-
     }
 
     class StockSiteScraperController : INotifyPropertyChanged
@@ -54,10 +40,11 @@ namespace ExcelStockScraper.Controllers
         XmlDocument _xmlDoc;
         private static List<string> _excelUpdateString;
         List<string> _userTickerInput;
-        
+        string loggingText = string.Empty;
         private string _currentValue;
         private string _loggingTextString;
         private static string stockValueElement = "//span[@class='Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)']";
+        private int _loadingPercent;
         int count = 1;
         HtmlAgilityPack.HtmlDocument doc;
         HtmlWeb web = new HtmlWeb();
@@ -150,6 +137,19 @@ namespace ExcelStockScraper.Controllers
             }
         }
 
+        public int LoadingPercent
+        {
+            get
+            {
+                return _loadingPercent;
+            }
+            set
+            {
+                _loadingPercent = value;
+                OnPropertyChanged("LoadingPercent");
+            }
+        }
+
         #endregion
 
 
@@ -175,10 +175,11 @@ namespace ExcelStockScraper.Controllers
         {
             for (int i = 0; i < TickerCollection.Count;i++)
             {
-                PullTickerData(TickerCollection[i].Ticker);
+                //PullTickerData(TickerCollection[i].Ticker);
                 if (TickerCollection.Any(x => x.Ticker == TickerCollection[i].Ticker))
                 {
                     TickerCollection[i].CurrentValue = PullTickerData(TickerCollection[i].Ticker);
+                    this.CurrentValue = TickerCollection[i].CurrentValue;
                 }
             }
 
@@ -186,54 +187,40 @@ namespace ExcelStockScraper.Controllers
         public string PullTickerData(string ticker)
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            doc = web.Load("https://finance.yahoo.com/quote/" + ticker + "/");
+            //CurrentValue = string.Empty;
+            //doc = web.Load("https://finance.yahoo.com/quote/" + ticker + "/");
+            var loadPage = Task.Run(() => web.Load("https://finance.yahoo.com/quote/" + ticker + "/"));
+            doc = loadPage.Result;
             CurrentValue = doc.DocumentNode.SelectSingleNode(stockValueElement).InnerHtml;
 
             return CurrentValue;
         }
 
-
-        public void CheckForConfigSettings()
-        {
-            var config = ConfigurationManager.OpenExeConfiguration(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            var savedTickers = ConfigurationManager.GetSection("savedTickers") as ConfigurationHandler;
-            if(savedTickers == null)
-            {
-
-            }
-            var tickers = savedTickers.Tickers;
-            if (tickers.Count != 0)
-            {
-                foreach (TickerElement key in tickers)
-                {
-                    UserTickerInput.Add(key.Name);
-                    AddTickersToCollection(key.Name);
-                }
-            }
-            else
-            {
-
-            }
-
-        }
-
-        private async Task AddTickersToCollection(string keyName)
+        public async Task AddTickersToCollection(string keyName)
         {
             
             await Application.Current.Dispatcher.BeginInvoke(
-                DispatcherPriority.Background, new Action(() => {
+                DispatcherPriority.Background, new Action(() =>
+                {
                     TickerCollection.Add(new StockData { Ticker = keyName, CurrentValue = PullTickerData(keyName) });
-                    }));
+                }));
         }
 
         public void AddToConfigSettings(string ticker)
         {
-            var nodeRegion = XmlDocument.CreateElement("Ticker");
-            nodeRegion.SetAttribute("name", ticker);
+            try
+            {
+                var nodeRegion = XmlDocument.CreateElement("Ticker");
+                nodeRegion.SetAttribute("name", ticker);
 
-            XmlDocument.SelectSingleNode("//savedTickers/tickers").AppendChild(nodeRegion);
-            XmlDocument.Save(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
-            ConfigurationManager.RefreshSection("savedTickers/tickers");
+                XmlDocument.SelectSingleNode("//savedTickers/tickers").AppendChild(nodeRegion);
+                SaveAndRefresh("savedTickers/tickers");
+            }
+            catch(Exception ex)
+            {
+
+            }
+ 
         }
 
         public void RemoveFromConfigSettings(StockData tickerName)
@@ -242,22 +229,28 @@ namespace ExcelStockScraper.Controllers
             {
                 XmlNode nodeTicker = XmlDocument.SelectSingleNode("//savedTickers/tickers/Ticker[@name=\'" + tickerName.Ticker + "\']");
                 nodeTicker.ParentNode.RemoveChild(nodeTicker);
+                UserTickerInput.Remove(tickerName.Ticker);
+                SaveAndRefresh("savedTickers/tickers");
 
-                XmlDocument.Save(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
-                ConfigurationManager.RefreshSection("savedTickers/tickers");
             }
             catch(Exception ex)
             {
-
+                
             }
 
         }
-    
 
+        public void SaveAndRefresh(string sectionToRefresh)
+        {
+            XmlDocument.Save(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
+            ConfigurationManager.RefreshSection(sectionToRefresh);
+        }
+
+        
         #region Logger
         public string LoggingText()
         {
-            string loggingText = string.Empty;
+            
             if (count % 1 == 0)
             {
                 if (TickerCollection.Count > 0)
@@ -307,30 +300,24 @@ namespace ExcelStockScraper.Controllers
         }
         #endregion
 
-        #region delet
+        
         public static void test()
         {
-            Excel.Application oExcelApp = null;
+            Excel.Application oExcelApp;
             Excel.Workbook wb;
-            oExcelApp = (Excel.Application)System.Runtime.InteropServices.Marshal.GetActiveObject("Excel.Application");
-
+            Excel.Worksheet oSheet;
+            oExcelApp = (Excel.Application)Marshal.GetActiveObject("Excel.Application");
             wb = oExcelApp.ActiveWorkbook;
+            oSheet = oExcelApp.ActiveSheet;
 
-            var workingSheet = wb.Sheets["Investment Data"];
-            //Excel.Sheets
-            Excel.Range range = workingSheet.UsedRange;
+            var activeColumn = oSheet.Application.ActiveCell.Column;
+            var activeRow = oSheet.Application.ActiveCell.Row;
 
-            var wbs = oExcelApp.Workbooks;
+            oSheet.Cells[activeRow, activeColumn] = "brad";
 
 
-            Excel.Sheets s = wb.Worksheets;
-            //Excel.Worksheet ws = (Excel.Worksheet)s.
-            //oExcelApp = (Excel.Application)Activator.CreateInstance(type, true);
-            //Excel.Range range = 
-            oExcelApp = (Excel.Application)System.Runtime.InteropServices.Marshal.GetActiveObject("Excel.Application");
-            oExcelApp = null;
         }
-        #endregion
+        
 
         #endregion
 

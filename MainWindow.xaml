@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:ExcelStockScraper.Controllers"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="600"
-        Background="#252932">
+        Background="#252932"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}">
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -23,21 +24,26 @@
             <RowDefinition Height="100*"/>
         </Grid.RowDefinitions>
 
-
-        <TextBox Name="LoggingText"
+        <StackPanel Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="4"
+                    >
+            <TextBox x:Name="LoggingText"
                  IsReadOnly="true"
                  TextWrapping="Wrap"
                  VerticalScrollBarVisibility="Visible"
-                 Text="{Binding Path=LoggingText}"
+                 Text="{Binding LoggingText}"
                  TextElement.Foreground="White"
                  BorderBrush="White"
                  BorderThickness="1"
-                 Grid.Column="0" 
-                 Grid.Row="3" 
-                 Grid.ColumnSpan="4"
                  Background="#252932"
                  TextElement.FontSize="18"
+                 Height="97"
                  />
+            <!--<Label Height="19" Background="LightGray" Margin="0,-2,0,0"  >
+                <ProgressBar IsIndeterminate="{Binding IsIntermediate, UpdateSourceTrigger=PropertyChanged}" Visibility="Visible" Width="100" Height="12" Margin="0,-3,-1045,0" Background="DimGray"/>
+            </Label>-->
+
+        </StackPanel>
+
 
 
         <Canvas Name="TickerControllerArea"
@@ -69,40 +75,23 @@
         </DockPanel>
 
 
-        <!--<ScrollViewer VerticalScrollBarVisibility="Hidden" Height="230" Width="292" Grid.Column="3" Grid.Row="0" Grid.ColumnSpan="1" Grid.RowSpan="2" Margin="0,50,0,0">
-            <ItemsControl ItemsSource="{Binding TickerCollection}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Vertical" >
-                            <TextBlock Name="Ticker" Height="25" Text="{Binding Ticker, UpdateSourceTrigger=PropertyChanged}" TextElement.FontSize="15" Margin="40,0,0,0"/>
-                            <TextBlock Name="CurrentValue" Height="25" Text="{Binding Path=CurrentValue, UpdateSourceTrigger=PropertyChanged}" TextElement.FontSize="15" Margin="100,-25,0,0" />
-                            <Button Name="RemoveTicker" Command="{Binding RemoveTickerCommand, Mode=OneWay}"  Height="20" Width="20"  Background="White" Content="X" IsEnabled="True" Margin="0,-30,-240,0"></Button>
-                        </StackPanel>
-                        --><!--<Button Background="Red" Margin="5,5,5" Content="X" Command="{Binding DataContext.AddUserInputTicker, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}"></Button>--><!--
-
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-
-            </ItemsControl>
-        </ScrollViewer>-->
 
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden"  Grid.Column="3" Grid.Row="0" Background="#252932" Grid.ColumnSpan="1" Grid.RowSpan="3" Margin="0,50,0,0">
             <ListBox ItemsSource="{Binding TickerCollection}" SelectedItem="{Binding SelectedItemToRemove}" Background="#252932" BorderThickness="1" BorderBrush="White" >
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Vertical">
-                            
                             <TextBlock Name="Ticker" Height="25" 
                                        Text="{Binding Ticker, UpdateSourceTrigger=PropertyChanged}" 
                                        TextElement.FontSize="15" 
                                        TextElement.Foreground="White" 
-                                       Margin="10,0,0,0"/>
+                                       Margin="10,2,0,0"/>
                             
                             <TextBlock Name="CurrentValue" Height="25" 
-                                       Text="{Binding Path=CurrentValue}" 
+                                       Text="{Binding CurrentValue, UpdateSourceTrigger=PropertyChanged}" 
                                        TextElement.FontSize="15" 
                                        TextElement.Foreground="White" 
-                                       Margin="60,-27,0,0" />
+                                       Margin="60,-25,0,0" />
                             
                             <Button Name="RemoveTicker" 
                                     Command="{Binding DataContext.RemoveTickerCommand, Mode=OneWay, RelativeSource={RelativeSource AncestorType=ListBox}}" 
@@ -111,7 +100,7 @@
                                     Background="#5d6880" 
                                     Content="X" 
                                     IsEnabled="True" 
-                                    Margin="235,-25,0,0">
+                                    Margin="235,-28,0,0">
                                 
                             </Button>
                         </StackPanel>
