@@ -147,8 +147,8 @@ namespace ExcelStockScraper
                     if (TickerCollection.Count > 0)
                     {
                         control.UpdateTickerData();
-                        CurrentValue = control.CurrentValue;
-                        //LoggingText = control.LoggingText();
+                        //CurrentValue = control.CurrentValue;
+                        LoggingText = control.LoggingText();
                         Thread.Sleep(10);
                     }
                 }
@@ -185,7 +185,7 @@ namespace ExcelStockScraper
 
                                 if (!TickerCollection.Any(x => x.Ticker == ticker))
                                 {
-                                    TickerCollection.Add(new StockData { Ticker = UserTextInput, CurrentValue = control.PullTickerData(UserTextInput) });
+                                    TickerCollection.Add(new StockData { Ticker = UserTextInput.ToUpper(), CurrentValue = control.PullTickerData(UserTextInput) });
                                 }
                             }
                         }
@@ -193,7 +193,7 @@ namespace ExcelStockScraper
                         {
                             //control.PullTickerData(UserTextInput);
 
-                            TickerCollection.Add(new StockData { Ticker = UserTextInput, CurrentValue = control.PullTickerData(UserTextInput) });
+                            TickerCollection.Add(new StockData { Ticker = UserTextInput.ToUpper(), CurrentValue = control.PullTickerData(UserTextInput) });
                         }
                         control.AddToConfigSettings(UserTextInput);
                         
@@ -202,7 +202,7 @@ namespace ExcelStockScraper
             }
             catch(Exception ex)
             {
-
+                LoggingText = ex.ToString();
             }
 
             return TickerCollection;
@@ -214,9 +214,9 @@ namespace ExcelStockScraper
         public ObservableCollection<StockData> RemoveTicker()
         {
             control.RemoveFromConfigSettings(SelectedItemToRemove);
+            control.UserTickerInput.Remove(SelectedItemToRemove.Ticker);
             TickerCollection.Remove(SelectedItemToRemove);
-            
-            
+
             return TickerCollection;
         }
 

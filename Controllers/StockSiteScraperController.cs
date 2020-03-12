@@ -15,6 +15,21 @@ using System.Windows.Threading;
 
 namespace ExcelStockScraper.Controllers
 {
+    public class ExcelData
+    {
+        public int SelectedColumn
+        {
+            get; set;
+        }
+
+        public int SelectedRow
+        {
+            get; set;
+        }
+
+    }
+
+
 
     public class StockData
     {
@@ -51,6 +66,7 @@ namespace ExcelStockScraper.Controllers
 
         #region Properties
         private static ObservableCollection<StockData> _tickerCollection;
+        private static ObservableCollection<ExcelData> _excelDataCollection;
         XmlDocument _xmlDoc;
         private static List<string> _excelUpdateString;
         List<string> _userTickerInput;
@@ -76,6 +92,19 @@ namespace ExcelStockScraper.Controllers
             {
                 _tickerCollection = value;
                 OnPropertyChanged("TickerCollection");
+            }
+        }
+
+        public ObservableCollection<ExcelData> ExcelDataCollection
+        {
+            get
+            {
+                return _excelDataCollection;
+            }
+            set
+            {
+                _excelDataCollection = value;
+                OnPropertyChanged("ExcelDataCollection");
             }
         }
 
@@ -192,7 +221,16 @@ namespace ExcelStockScraper.Controllers
             return CurrentValue;
         }
 
+        private async Task AddTickersToCollection(string keyName)
+        {
 
+            await Application.Current.Dispatcher.BeginInvoke(
+                DispatcherPriority.Background, new Action(() => {
+                    TickerCollection.Add(new StockData { Ticker = keyName, CurrentValue = PullTickerData(keyName) });
+                }));
+        }
+
+        #region ConfigSettings
         public void CheckForConfigSettings()
         {
             var config = ConfigurationManager.OpenExeConfiguration(System.Reflection.Assembly.GetExecutingAssembly().Location);
@@ -216,20 +254,11 @@ namespace ExcelStockScraper.Controllers
             }
 
         }
-
-        private async Task AddTickersToCollection(string keyName)
-        {
-            
-            await Application.Current.Dispatcher.BeginInvoke(
-                DispatcherPriority.Background, new Action(() => {
-                    TickerCollection.Add(new StockData { Ticker = keyName, CurrentValue = PullTickerData(keyName) });
-                    }));
-        }
-
+        
         public void AddToConfigSettings(string ticker)
         {
             var nodeRegion = XmlDocument.CreateElement("Ticker");
-            nodeRegion.SetAttribute("name", ticker);
+            nodeRegion.SetAttribute("name", ticker.ToUpper());
 
             XmlDocument.SelectSingleNode("//savedTickers/tickers").AppendChild(nodeRegion);
             XmlDocument.Save(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
@@ -242,17 +271,19 @@ namespace ExcelStockScraper.Controllers
             {
                 XmlNode nodeTicker = XmlDocument.SelectSingleNode("//savedTickers/tickers/Ticker[@name=\'" + tickerName.Ticker + "\']");
                 nodeTicker.ParentNode.RemoveChild(nodeTicker);
+                UserTickerInput.Remove(tickerName.Ticker);
 
                 XmlDocument.Save(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
                 ConfigurationManager.RefreshSection("savedTickers/tickers");
             }
             catch(Exception ex)
             {
-
+                LoggingTextString = ex.ToString();
             }
 
         }
-    
+
+        #endregion
 
         #region Logger
         public string LoggingText()
