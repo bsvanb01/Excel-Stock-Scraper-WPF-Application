@@ -14,6 +14,7 @@ using System.Windows;
 using System.Configuration;
 using System.Xml;
 using System.Collections.Specialized;
+using System.Net;
 
 namespace ExcelStockScraper
 {
@@ -28,6 +29,8 @@ namespace ExcelStockScraper
         private string _loggingText;
         private string _userTextInput;
         private string _currentValue;
+        private int _activeColumn;
+        private int _activeRow;
         private bool _isIntermediate;
         private StockData _selectedItemToRemove;
 
@@ -128,6 +131,32 @@ namespace ExcelStockScraper
             }
         }
 
+        public int ActiveColumn
+        {
+            get
+            {
+                return _activeColumn;
+            }
+            set
+            {
+                _activeColumn = value;
+                OnPropertyChanged("ActiveColumn");
+            }
+        }
+
+        public int ActiveRow
+        {
+            get
+            {
+                return _activeRow;
+            }
+            set
+            {
+                _activeRow = value;
+                OnPropertyChanged("ActiveRow");
+            }
+        }
+
         public bool CanExecute
         {
             get
@@ -155,16 +184,17 @@ namespace ExcelStockScraper
         {
             try
             {
-                while(true)
+                while (true)
                 {
                     TickerCollection = control.TickerCollection;
                     if (TickerCollection.Count > 0)
                     {
                         control.UpdateTickerData();
-
+                        //control.CheckForActiveCellAsync();
+                        //UpdateExcelDataUI();
                         //CurrentValue = control.CurrentValue;
                         LoggingText = control.LoggingText();
-                        
+
                         //Thread.Sleep(10);
 
                     }
@@ -184,30 +214,42 @@ namespace ExcelStockScraper
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+
+        public void UpdateExcelDataUI()
+        {
+            ActiveColumn = control.ActiveColumn;
+            ActiveRow = control.ActiveRow;
+        }
+
+
         public void CheckForConfigSettings()
         {
-            var config = ConfigurationManager.OpenExeConfiguration(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            var savedTickers = ConfigurationManager.GetSection("savedTickers") as ConfigurationHandler;
-            if (savedTickers == null)
+            try
             {
+                var config = ConfigurationManager.OpenExeConfiguration(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                var savedTickers = ConfigurationManager.GetSection("savedTickers") as ConfigurationHandler;
+                var tickers = savedTickers.Tickers;
 
-            }
-            var tickers = savedTickers.Tickers;
-            if (tickers.Count != 0)
-            {
-                IsIntermediate = true;
-                foreach (TickerElement key in tickers)
+                if (tickers.Count != 0)
                 {
-                    control.UserTickerInput.Add(key.Name);
-                    control.AddTickersToCollection(key.Name);
+                    IsIntermediate = true;
+                    foreach (TickerElement key in tickers)
+                    {
+                        control.UserTickerInput.Add(key.Name);
+                        control.AddTickersToCollection(key.Name);
+                    }
 
                 }
+                else
+                {
 
+                }
             }
-            else
+            catch(Exception ex)
             {
-
+                LoggingText = ex.ToString();
             }
+
 
         }
 
@@ -229,18 +271,12 @@ namespace ExcelStockScraper
 
                                 if (!TickerCollection.Any(x => x.Ticker == ticker))
                                 {
-
-                                    //TickerCollection.Add(new StockData { Ticker = UserTextInput, CurrentValue = control.PullTickerData(UserTextInput) });
                                     control.AddTickersToCollection(UserTextInput);
-
                                 }
                             }
                         }
                         else
                         {
-                            //control.PullTickerData(UserTextInput);
-
-                            //TickerCollection.Add(new StockData { Ticker = UserTextInput, CurrentValue = control.PullTickerData(UserTextInput) });
                             control.AddTickersToCollection(UserTextInput);
                         }
                         control.AddToConfigSettings(UserTextInput);
@@ -256,9 +292,6 @@ namespace ExcelStockScraper
             return TickerCollection;
         }
 
-
-
-
         public ObservableCollection<StockData> RemoveTicker()
         {
             control.RemoveFromConfigSettings(SelectedItemToRemove);
@@ -272,6 +305,7 @@ namespace ExcelStockScraper
         {
             await Task.Run(() => MainMethod());
         }
+
 
 
 

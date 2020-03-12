@@ -56,7 +56,8 @@
         <DockPanel Grid.RowSpan="3" Grid.ColumnSpan="3">
             <Border BorderThickness="1" BorderBrush="White">
                 <StackPanel>
-
+                    <Label Content="{Binding ActiveColumn, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Label Content="{Binding ActiveRow, UpdateSourceTrigger=PropertyChanged}"/>
                 </StackPanel>
             </Border>
         </DockPanel>

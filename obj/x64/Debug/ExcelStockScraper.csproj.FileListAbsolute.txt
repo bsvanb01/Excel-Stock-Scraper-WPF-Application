@@ -35,3 +35,8 @@ M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Applicatio
 M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x64\Debug\ExcelStockScraper.csproj.CopyComplete
 M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x64\Debug\ExcelStockScraper.exe
 M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x64\Debug\ExcelStockScraper.pdb
+D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\bin\x64\Debug\AngleSharp.dll
+D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\bin\x64\Debug\System.Runtime.CompilerServices.Unsafe.dll
+D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\bin\x64\Debug\System.Text.Encoding.CodePages.dll
+D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\bin\x64\Debug\AngleSharp.xml
+D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\bin\x64\Debug\System.Runtime.CompilerServices.Unsafe.xml

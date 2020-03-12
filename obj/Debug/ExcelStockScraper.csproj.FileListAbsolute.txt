@@ -17,3 +17,8 @@ D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\ob
 D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\obj\Debug\ExcelStockScraper.csproj.CopyComplete
 D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\obj\Debug\ExcelStockScraper.exe
 D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\obj\Debug\ExcelStockScraper.pdb
+D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\bin\Debug\AngleSharp.dll
+D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\bin\Debug\System.Runtime.CompilerServices.Unsafe.dll
+D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\bin\Debug\System.Text.Encoding.CodePages.dll
+D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\bin\Debug\AngleSharp.xml
+D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\bin\Debug\System.Runtime.CompilerServices.Unsafe.xml

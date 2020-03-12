@@ -45,21 +45,6 @@ namespace ExcelStockScraper.Controllers
             get; set;
         }
 
-        public double ItemMarginTop
-        {
-            get; set;
-        }
-
-        public double ItemMarginBottom
-        {
-            get; set;
-        }
-
-        public Thickness ItemMargins
-        {
-            get; set;
-        }
-
     }
 
     class StockSiteScraperController : INotifyPropertyChanged
@@ -74,12 +59,18 @@ namespace ExcelStockScraper.Controllers
         string loggingText = string.Empty;
         private string _currentValue;
         private string _loggingTextString;
-        private static string stockValueElement = "//span[@class='Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)']";
+        private string stockValueElement = "//span[@class='Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)']";
         private int _loadingPercent;
+        private int _activeColumn;
+        private int _activeRow;
         int count = 1;
         HtmlAgilityPack.HtmlDocument doc;
         HtmlWeb web = new HtmlWeb();
-        
+
+        public static Excel.Application oExcelApp;
+        public static Excel.Workbook wb;
+        public static Excel.Worksheet oSheet;
+
 
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -193,6 +184,32 @@ namespace ExcelStockScraper.Controllers
                 OnPropertyChanged("LoadingPercent");
             }
         }
+
+        public int ActiveColumn
+        {
+            get
+            {
+                return _activeColumn;
+            }
+            set
+            {
+                _activeColumn = value;
+                OnPropertyChanged("ActiveColumn");
+            }
+        }
+
+        public int ActiveRow
+        {
+            get
+            {
+                return _activeRow;
+            }
+            set
+            {
+                _activeRow = value;
+                OnPropertyChanged("ActiveRow");
+            }
+        }
         #endregion
 
 
@@ -201,6 +218,7 @@ namespace ExcelStockScraper.Controllers
             XmlDocument = new XmlDocument();
             XmlDocument.Load(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
             TickerCollection = new ObservableCollection<StockData>();
+            ExcelDataCollection = new ObservableCollection<ExcelData>();
             UserTickerInput = new List<string>();
             ExcelUpdateString = new List<string>();
         }
@@ -222,7 +240,7 @@ namespace ExcelStockScraper.Controllers
                 if (TickerCollection.Any(x => x.Ticker == TickerCollection[i].Ticker))
                 {
                     TickerCollection[i].CurrentValue = PullTickerData(TickerCollection[i].Ticker);
-                    this.CurrentValue = TickerCollection[i].CurrentValue;
+                    //this.CurrentValue = TickerCollection[i].CurrentValue;
                 }
             }
 
@@ -375,11 +393,31 @@ namespace ExcelStockScraper.Controllers
         #endregion
 
         #region delet
-        public static void test()
+        public async Task CheckForActiveCellAsync()
         {
-            Excel.Application oExcelApp;
-            Excel.Workbook wb;
-            Excel.Worksheet oSheet;
+            await Task.Run(() => CheckForActiveCell());
+        }
+        
+        public void CheckForActiveCell()
+        {
+            oExcelApp = (Excel.Application)Marshal.GetActiveObject("Excel.Application");
+            wb = oExcelApp.ActiveWorkbook;
+            oSheet = oExcelApp.ActiveSheet;
+
+            var activeColumn = oSheet.Application.ActiveCell.Column;
+            var activeRow = oSheet.Application.ActiveCell.Row;
+
+            if (activeColumn != 0 && activeRow != 0)
+            {
+                ActiveColumn = activeColumn;
+                ActiveRow = activeRow;
+            }
+        }
+
+
+
+        public void test()
+        {
             oExcelApp = (Excel.Application)Marshal.GetActiveObject("Excel.Application");
             wb = oExcelApp.ActiveWorkbook;
             oSheet = oExcelApp.ActiveSheet;
@@ -388,7 +426,6 @@ namespace ExcelStockScraper.Controllers
             var activeRow = oSheet.Application.ActiveCell.Row;
 
             oSheet.Cells[activeRow, activeColumn] = "brad";
-
 
         }
         #endregion
