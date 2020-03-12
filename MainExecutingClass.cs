@@ -28,6 +28,7 @@ namespace ExcelStockScraper
         private string _loggingText;
         private string _userTextInput;
         private string _currentValue;
+        private bool _isIntermediate;
         private StockData _selectedItemToRemove;
 
 
@@ -60,19 +61,32 @@ namespace ExcelStockScraper
             }
         }
 
-        public string CurrentValue
-
+        public bool IsIntermediate
         {
             get
             {
-                return _currentValue;
+                return _isIntermediate;
             }
             set
             {
-                _currentValue = value;
-                OnPropertyChanged("CurrentValue");
+                _isIntermediate = value;
+                OnPropertyChanged("IsIntermediate");
             }
         }
+
+        //public string CurrentValue
+
+        //{
+        //    get
+        //    {
+        //        return _currentValue;
+        //    }
+        //    set
+        //    {
+        //        _currentValue = value;
+        //        OnPropertyChanged("CurrentValue");
+        //    }
+        //}
 
         public string UserTextInput
         {
@@ -129,7 +143,7 @@ namespace ExcelStockScraper
         {
             this.StockSiteScraperController = new StockSiteScraperController();
             TickerCollection = new ObservableCollection<StockData>();
-            control.CheckForConfigSettings();
+            CheckForConfigSettings();
             RunTaskASync(); 
         }
         #endregion
@@ -147,9 +161,12 @@ namespace ExcelStockScraper
                     if (TickerCollection.Count > 0)
                     {
                         control.UpdateTickerData();
+
                         //CurrentValue = control.CurrentValue;
                         LoggingText = control.LoggingText();
-                        Thread.Sleep(10);
+                        
+                        //Thread.Sleep(10);
+
                     }
                 }
             }
@@ -165,6 +182,33 @@ namespace ExcelStockScraper
         public void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public void CheckForConfigSettings()
+        {
+            var config = ConfigurationManager.OpenExeConfiguration(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            var savedTickers = ConfigurationManager.GetSection("savedTickers") as ConfigurationHandler;
+            if (savedTickers == null)
+            {
+
+            }
+            var tickers = savedTickers.Tickers;
+            if (tickers.Count != 0)
+            {
+                IsIntermediate = true;
+                foreach (TickerElement key in tickers)
+                {
+                    control.UserTickerInput.Add(key.Name);
+                    control.AddTickersToCollection(key.Name);
+
+                }
+
+            }
+            else
+            {
+
+            }
+
         }
 
 
@@ -185,7 +229,10 @@ namespace ExcelStockScraper
 
                                 if (!TickerCollection.Any(x => x.Ticker == ticker))
                                 {
-                                    TickerCollection.Add(new StockData { Ticker = UserTextInput.ToUpper(), CurrentValue = control.PullTickerData(UserTextInput) });
+
+                                    //TickerCollection.Add(new StockData { Ticker = UserTextInput, CurrentValue = control.PullTickerData(UserTextInput) });
+                                    control.AddTickersToCollection(UserTextInput);
+
                                 }
                             }
                         }
@@ -193,7 +240,8 @@ namespace ExcelStockScraper
                         {
                             //control.PullTickerData(UserTextInput);
 
-                            TickerCollection.Add(new StockData { Ticker = UserTextInput.ToUpper(), CurrentValue = control.PullTickerData(UserTextInput) });
+                            //TickerCollection.Add(new StockData { Ticker = UserTextInput, CurrentValue = control.PullTickerData(UserTextInput) });
+                            control.AddTickersToCollection(UserTextInput);
                         }
                         control.AddToConfigSettings(UserTextInput);
                         
