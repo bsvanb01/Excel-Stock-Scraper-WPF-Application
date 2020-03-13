@@ -55,9 +55,13 @@
         
         <DockPanel Grid.RowSpan="3" Grid.ColumnSpan="3">
             <Border BorderThickness="1" BorderBrush="White">
-                <StackPanel>
-                    <Label Content="{Binding ActiveColumn, UpdateSourceTrigger=PropertyChanged}" TextElement.Foreground="White"/>
-                    <Label Content="{Binding ActiveRow, UpdateSourceTrigger=PropertyChanged}" TextElement.Foreground="LightGray"/>
+                <StackPanel Orientation="Horizontal">
+                    <ComboBox Height="25" Width="100" FontSize="15" ItemsSource="{Binding TickerComboBoxCollection}" SelectedItem="{Binding ComboBoxInsertSelection}"/>
+                    <Button Content="Insert" Height="25" Width="50" Command="{Binding InsertToExcelCellICommand}"/>
+                    <Label Content="Column Selected" TextElement.Foreground="White" Margin="-105,0,0,270"/>
+                    <Label Content="Row Selected" TextElement.Foreground="White" Margin="40,0,0,270"/>
+                    <Label Content="{Binding ActiveColumn, UpdateSourceTrigger=PropertyChanged}" TextElement.Foreground="White" Margin="-180,20,150,250"/>
+                    <Label Content="{Binding ActiveRow, UpdateSourceTrigger=PropertyChanged}" TextElement.Foreground="LightGray" Margin="-50,20,0,250"/>
                 </StackPanel>
             </Border>
         </DockPanel>

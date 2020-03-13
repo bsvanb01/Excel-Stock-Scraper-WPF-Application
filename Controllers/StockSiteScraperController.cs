@@ -96,12 +96,12 @@ namespace ExcelStockScraper.Controllers
             }
         }
 
-        public int TickerExcelColumn
+        public string TickerExcelColumn
         {
             get; set;
         }
 
-        public int TickerExcelRow
+        public string TickerExcelRow
         {
             get; set;
         }
@@ -116,9 +116,10 @@ namespace ExcelStockScraper.Controllers
         private static ObservableCollection<ExcelData> _excelDataCollection;
         
         private static List<string> _excelUpdateString;
-        List<string> _userTickerInput;
+        ObservableCollection<string> _userTickerInput;
         string loggingText = string.Empty;
         private string _loggingTextString;
+        
         private string stockValueElement = "//span[@class='Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)']";
         private string stockGainLossElement = "//span[starts-with(@class, 'Trsdu(0.3s) Fw(500) Pstart(10px) Fz(24px)')]";
         private int _loadingPercent;
@@ -179,7 +180,7 @@ namespace ExcelStockScraper.Controllers
             }
         }
 
-        public List<string> UserTickerInput
+        public ObservableCollection<string> UserTickerInput
         {
             get
             {
@@ -217,6 +218,8 @@ namespace ExcelStockScraper.Controllers
                 OnPropertyChanged("LoggingTextString");
             }
         }
+
+
 
         public int LoadingPercent
         {
@@ -271,12 +274,12 @@ namespace ExcelStockScraper.Controllers
         public StockSiteScraperController()
         {
             XmlDocument = new XmlDocument();
-            worker = CreateBackgroundWorker();
-            worker.RunWorkerAsync();
+            //worker = CreateBackgroundWorker();
+            //worker.RunWorkerAsync();
             XmlDocument.Load(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
             TickerCollection = new ObservableCollection<StockData>();
             ExcelDataCollection = new ObservableCollection<ExcelData>();
-            UserTickerInput = new List<string>();
+            UserTickerInput = new ObservableCollection<string>();
             ExcelUpdateString = new List<string>();
         }
         #endregion
@@ -332,13 +335,13 @@ namespace ExcelStockScraper.Controllers
         
 
 
-        public async Task AddTickersToCollection(string keyName)
+        public async Task AddTickersToCollection(string keyName, string tickerExcelRow, string tickerExcelColumn)
         {
 
             await Application.Current.Dispatcher.BeginInvoke(
                 DispatcherPriority.Background, new Action(() =>
                 {
-                    TickerCollection.Add(new StockData { Ticker = keyName });
+                    TickerCollection.Add(new StockData { Ticker = keyName, TickerExcelRow = tickerExcelRow, TickerExcelColumn = tickerExcelColumn });
                 }));
         }
 
@@ -372,7 +375,10 @@ namespace ExcelStockScraper.Controllers
             try
             {
                 var nodeRegion = XmlDocument.CreateElement("Ticker");
-                nodeRegion.SetAttribute("name", ticker);
+                nodeRegion.SetAttribute("Name", ticker);
+                nodeRegion.SetAttribute("ExcelRowValue", 0.ToString());
+                nodeRegion.SetAttribute("ExcelColumnValue", 0.ToString());
+
 
 
                 XmlDocument.SelectSingleNode("//savedTickers/tickers").AppendChild(nodeRegion);
@@ -390,7 +396,7 @@ namespace ExcelStockScraper.Controllers
             
             try
             {
-                XmlNode nodeTicker = XmlDocument.SelectSingleNode("//savedTickers/tickers/Ticker[@name=\'" + tickerName.Ticker + "\']");
+                XmlNode nodeTicker = XmlDocument.SelectSingleNode("//savedTickers/tickers/Ticker[@Name=\'" + tickerName.Ticker + "\']");
                 nodeTicker.ParentNode.RemoveChild(nodeTicker);
                 UserTickerInput.Remove(tickerName.Ticker);
                 SaveAndRefresh("savedTickers/tickers");
@@ -467,7 +473,7 @@ namespace ExcelStockScraper.Controllers
         }
         #endregion
 
-        #region delet
+        #region Background Worker
 
         private void worker_DoWork(object sender, DoWorkEventArgs e)
         {

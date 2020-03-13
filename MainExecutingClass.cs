@@ -9,6 +9,8 @@ using ExcelStockScraper.Handlers;
 using System.Configuration;
 using Excel = Microsoft.Office.Interop.Excel;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using System.Xml;
 
 namespace ExcelStockScraper
 {
@@ -17,11 +19,14 @@ namespace ExcelStockScraper
         #region Properties
         StockSiteScraperController control = new StockSiteScraperController();
         private ObservableCollection<StockData> _tickerCollection;
+        private ObservableCollection<string> _tickerComboBoxCollection;
         public event PropertyChangedEventHandler PropertyChanged;
         private ICommand _addUserInputTicker;
         private ICommand _removeUserInputTicker;
+        private ICommand _insertToExcelCell;
         private string _loggingText;
         private string _userTextInput;
+        private string _comboBoxInsertSelection;
         private int _activeColumn;
         private int _activeRow;
         private bool _isIntermediate;
@@ -47,6 +52,14 @@ namespace ExcelStockScraper
             get
             {
                 return _removeUserInputTicker ?? (_removeUserInputTicker = new CommandHandler(() => RemoveTickerCommand(), () => CanExecute));
+            }
+        }
+
+        public ICommand InsertToExcelCellICommand
+        {
+            get
+            {
+                return _insertToExcelCell ?? (_insertToExcelCell = new CommandHandler(() => InsertToExcelCellCommand(), () => CanExecute));
             }
         }
         #endregion
@@ -81,6 +94,19 @@ namespace ExcelStockScraper
             }
         }
 
+        public ObservableCollection<string> TickerComboBoxCollection
+        {
+            get
+            {
+                return _tickerComboBoxCollection;
+            }
+            set
+            {
+                _tickerComboBoxCollection = value;
+                OnPropertyChanged("TickerComboBoxCollection");
+            }
+        }
+
         public string UserTextInput
         {
             get
@@ -106,6 +132,19 @@ namespace ExcelStockScraper
             {
                 _loggingText = value;
                 OnPropertyChanged("LoggingText");
+            }
+        }
+
+        public string ComboBoxInsertSelection
+        {
+            get
+            {
+                return _comboBoxInsertSelection;
+            }
+            set
+            {
+                _comboBoxInsertSelection = value;
+                OnPropertyChanged("ComboBoxSelection");
             }
         }
 
@@ -162,10 +201,11 @@ namespace ExcelStockScraper
         {
             this.StockSiteScraperController = new StockSiteScraperController();
             TickerCollection = new ObservableCollection<StockData>();
+            TickerComboBoxCollection = new ObservableCollection<string>();
             worker = CreateBackgroundWorker();
             worker.RunWorkerAsync();
             CheckForConfigSettings();
-            RunTaskASync(); 
+            RunTaskASync();
         }
         #endregion
 
@@ -211,10 +251,11 @@ namespace ExcelStockScraper
                 while (true)
                 {
                     TickerCollection = control.TickerCollection;
+                    TickerComboBoxCollection = control.UserTickerInput;
                     if (TickerCollection.Count >= 0)
                     {
                         control.UpdateTickerData();
-                        
+                        UpdateExcelCellData();
                         //LoggingText = control.LoggingText();
                     }
                 }
@@ -233,7 +274,7 @@ namespace ExcelStockScraper
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-
+        //Keep in MainExecutingClass.cs for executing on load
         public void CheckForConfigSettings()
         {
             try
@@ -248,7 +289,7 @@ namespace ExcelStockScraper
                     foreach (TickerElement key in tickers)
                     {
                         control.UserTickerInput.Add(key.Name);
-                        control.AddTickersToCollection(key.Name.ToUpper());
+                        control.AddTickersToCollection(key.Name.ToUpper(), key.ExcelRowValue, key.ExcelColumnValue);
                     }
 
                 }
@@ -264,6 +305,97 @@ namespace ExcelStockScraper
 
         }
 
+        public void InsertToExcelCellCommand()
+        {
+            for (int i = 0; i < TickerCollection.Count; i++)
+            {
+                //PullTickerData(TickerCollection[i].Ticker);
+                if (TickerCollection.Any(x => x.Ticker == ComboBoxInsertSelection))
+                {
+                    AddCellCoordToConfigSettings();
+                    oSheet.Cells[ActiveRow, ActiveColumn] = TickerCollection[i].CurrentValue;
+                }
+            }
+            //oSheet.Cells[ActiveRow, ActiveColumn] = ComboBoxInsertSelection;
+
+            //Make changes to config
+        }
+
+        public void UpdateExcelCellData()
+        {
+            for (int i = 0; i < TickerCollection.Count; i++)
+            {
+                //PullTickerData(TickerCollection[i].Ticker);
+                if (TickerCollection.Any(x => x.Ticker == TickerCollection[i].Ticker))
+                {
+                    if(StockDataItemHasCoord() == true)
+                    {
+                        oSheet.Cells[Int16.Parse(TickerCollection[i].TickerExcelRow), Int16.Parse(TickerCollection[i].TickerExcelRow)] = TickerCollection[i].CurrentValue;
+                    }
+                    
+                }
+            }
+        }
+
+        //create method to write to config
+
+        public void AddCellCoordToConfigSettings()
+        {
+            try
+            {
+                var xmlElement = control.XmlDocument.DocumentElement;
+                //var xmlNodeList = xmlElement.SelectNodes("//Ticker");
+                var xmlNodeList = xmlElement.GetElementsByTagName("Ticker");
+
+                
+                //var nodeRegion = control.XmlDocument.CreateElement("Ticker");
+                //nodeRegion.SetAttribute("name", ticker);
+                foreach(XmlNode node in xmlNodeList)
+                {
+                    string name = node.Attributes["Name"].InnerText;
+
+                    if(name == ComboBoxInsertSelection)
+                    {
+                        var excelColumnValue = control.XmlDocument.CreateAttribute("ExcelColumnValue");
+                        var excelRowValue = control.XmlDocument.CreateAttribute("ExcelRowValue");
+                        excelColumnValue.Value = ActiveColumn.ToString();
+                        excelRowValue.Value = ActiveRow.ToString();
+                        node.Attributes.Append(excelColumnValue);
+                        node.Attributes.Append(excelRowValue);
+                        //xmlElement.SetAttribute("ExcelColumnValue", ActiveColumn.ToString());
+                        //xmlElement.SetAttribute("ExcelRowValue", ActiveRow.ToString());
+                    }
+                    
+                }
+
+
+                //control.XmlDocument.SelectSingleNode("//savedTickers/tickers").AppendChild(nodeRegion);
+                control.SaveAndRefresh("savedTickers/tickers");
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+        }
+
+        public bool StockDataItemHasCoord()
+        {
+            var xmlElement = control.XmlDocument.DocumentElement;
+            //var xmlNodeList = xmlElement.SelectNodes("//Ticker");
+            var xmlNodeList = xmlElement.GetElementsByTagName("Ticker");
+            foreach (XmlNode node in xmlNodeList)
+            {
+                string columnCoord = node.Attributes["ExcelColumnValue"].InnerText;
+                string rowCoord = node.Attributes["ExcelRowValue"].InnerText;
+
+                if (string.IsNullOrWhiteSpace(columnCoord) && string.IsNullOrWhiteSpace(rowCoord))
+                {
+                    return false;
+                }
+            }
+                return true;
+        }
 
         public ObservableCollection<StockData> AddTickerCommand()
         {
@@ -282,13 +414,13 @@ namespace ExcelStockScraper
 
                                 if (!TickerCollection.Any(x => x.Ticker == ticker))
                                 {
-                                    control.AddTickersToCollection(UserTextInput.ToUpper());
+                                    control.AddTickersToCollection(UserTextInput.ToUpper(),"","");
                                 }
                             }
                         }
                         else
                         {
-                            control.AddTickersToCollection(UserTextInput.ToUpper());
+                            control.AddTickersToCollection(UserTextInput.ToUpper(),"","");
                         }
                         control.AddToConfigSettings(UserTextInput.ToUpper());
                     }

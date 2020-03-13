@@ -38,12 +38,25 @@ namespace ExcelStockScraper
         }
     }
 
+
     public class TickerElement : ConfigurationElement
     {
-        [ConfigurationProperty("name", IsRequired = true, IsKey = true)]
+        [ConfigurationProperty("Name", IsRequired = false, IsKey = false)]
         public string Name
         {
-            get { return (string)base["name"]; }
+            get { return (string)base["Name"]; }
+        }
+
+        [ConfigurationProperty("ExcelRowValue", IsRequired = false, IsKey = false)]
+        public string ExcelRowValue
+        {
+            get { return (string)base["ExcelRowValue"]; }
+        }
+
+        [ConfigurationProperty("ExcelColumnValue", IsRequired = false, IsKey = false)]
+        public string ExcelColumnValue
+        {
+            get { return (string)base["ExcelColumnValue"]; }
         }
 
     }
