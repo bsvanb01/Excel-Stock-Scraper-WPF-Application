@@ -127,6 +127,7 @@
     <Compile Include="Controllers\StockSiteScraperController.cs" />
     <Compile Include="Handlers\CommandHandler.cs" />
     <Compile Include="Handlers\ConfigurationHandler.cs" />
+    <Compile Include="Handlers\NullBrushConverter.cs" />
     <Compile Include="MainExecutingClass.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>

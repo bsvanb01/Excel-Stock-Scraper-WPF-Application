@@ -224,6 +224,7 @@ namespace ExcelStockScraper
         private void worker_DoWork(object sender, DoWorkEventArgs e)
         {
             oExcelApp = (Excel.Application)Marshal.GetActiveObject("Excel.Application");
+            oExcelApp.Visible = true;
             wb = oExcelApp.ActiveWorkbook;
             oSheet = oExcelApp.ActiveSheet;
 
@@ -255,7 +256,7 @@ namespace ExcelStockScraper
                     if (TickerCollection.Count >= 0)
                     {
                         control.UpdateTickerData();
-                        UpdateExcelCellData();
+                        //UpdateExcelCellData();
                         //LoggingText = control.LoggingText();
                     }
                 }
