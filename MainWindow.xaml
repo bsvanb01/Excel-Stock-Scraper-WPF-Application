@@ -4,40 +4,129 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ExcelStockScraper.Controllers"
+        xmlns:converter="clr-namespace:ExcelStockScraper.Handlers"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="600">
+        Title="MainWindow" Height="450" Width="600"
+        Background="#252932"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}">
+    <Window.Resources>
+        <converter:NullBrushConverter x:Key="nullBrushConverter"/>
+    </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="100*"/>
         </Grid.ColumnDefinitions>
-        
+
         <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="100"/>
+            <RowDefinition Height="150"/>
+            <RowDefinition Height="100*"/>
         </Grid.RowDefinitions>
 
-        <TextBox Name="LoggingText"
+        <StackPanel Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="4"
+                    >
+            <TextBox x:Name="LoggingText"
                  IsReadOnly="true"
-                 Text="{Binding Path=LoggingText}"
-                 Grid.Column="0" 
-                 Grid.Row="2" 
-                 Grid.ColumnSpan="4"
-                 Background="Aqua"
-                 TextElement.FontSize="20"
+                 TextWrapping="Wrap"
+                 VerticalScrollBarVisibility="Visible"
+                 Text="{Binding LoggingText}"
+                 TextElement.Foreground="White"
+                 BorderBrush="White"
+                 BorderThickness="1"
+                 Background="#252932"
+                 TextElement.FontSize="18"
+                 Height="97"
                  />
-        
-        <Label Name="TickerControllerArea"
-               Grid.Column="3" 
+            <!--<Label Height="19" Background="LightGray" Margin="0,-2,0,0"  >
+                <ProgressBar IsIndeterminate="{Binding IsIntermediate, UpdateSourceTrigger=PropertyChanged}" Visibility="Visible" Width="100" Height="12" Margin="0,-3,-1045,0" Background="DimGray"/>
+            </Label>-->
+
+        </StackPanel>
+
+
+
+        <Canvas Name="TickerControllerArea"
+               Grid.Column="0" 
                Grid.Row="0"
-               Grid.RowSpan="2"
-               Grid.ColumnSpan="1"
-               Background="Red"/>
+               Grid.RowSpan="3"
+               Grid.ColumnSpan="3"
+               Background="#252932"/>
+        
+        <DockPanel Grid.RowSpan="3" Grid.ColumnSpan="3">
+            <Border BorderThickness="1" BorderBrush="White">
+                <StackPanel Orientation="Horizontal">
+                    <ComboBox Height="25" Width="100" FontSize="15" ItemsSource="{Binding TickerComboBoxCollection}" SelectedItem="{Binding ComboBoxInsertSelection}"/>
+                    <Button Content="Insert" Height="25" Width="50" Command="{Binding InsertToExcelCellICommand}"/>
+                    <Label Content="Column Selected" TextElement.Foreground="White" Margin="-105,0,0,270"/>
+                    <Label Content="Row Selected" TextElement.Foreground="White" Margin="40,0,0,270"/>
+                    <Label Content="{Binding ActiveColumn, UpdateSourceTrigger=PropertyChanged}" TextElement.Foreground="White" Margin="-180,20,150,250"/>
+                    <Label Content="{Binding ActiveRow, UpdateSourceTrigger=PropertyChanged}" TextElement.Foreground="LightGray" Margin="-50,20,0,250"/>
+                </StackPanel>
+            </Border>
+        </DockPanel>
+
+        <DockPanel Grid.RowSpan="1" Grid.Row="0" Grid.ColumnSpan="3" Grid.Column="3">
+            <Border BorderThickness="1" BorderBrush="White">
+                <StackPanel>
+                    <Button Name="AddTicker" Width="25" Height="25" Grid.Column="3" Command="{Binding Path=AddUserInputTickerICommand}" Foreground="White" Margin="120,10,0,100">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="/Icons/plus-512.png"/>
+                        </StackPanel>
+                    </Button>
+                    <TextBox Text="{Binding UserTextInput}" Width="90" Height="25" TextElement.Foreground="Black" TextElement.FontSize="15"  Margin="-50,-125,0,102" />
+                </StackPanel>
+            </Border>
+        </DockPanel>
+
+
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden"  Grid.Column="3" Grid.Row="0" Background="#252932" Grid.ColumnSpan="1" Grid.RowSpan="3" Margin="0,50,0,0">
+            <ListBox ItemsSource="{Binding TickerCollection}" SelectedItem="{Binding SelectedItemToRemove}" Background="#252932" BorderThickness="1" BorderBrush="White" >
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Name="Ticker" Height="25" 
+                                       Text="{Binding Ticker}" 
+                                       TextElement.FontSize="15" 
+                                       TextElement.Foreground="White" 
+                                       Margin="2,2,0,0"/>
+                            
+                            <TextBlock Name="CurrentValue" Height="25" 
+                                       Text="{Binding CurrentValue}" 
+                                       TextElement.FontSize="15" 
+                                       TextElement.Foreground="White" 
+                                       Margin="50,-25,0,0"/>
+                            
+                            <TextBlock Name="GainLossValue" Height="25" 
+                                       Text="{Binding GainLossValue}"
+                                       TextElement.Foreground="{Binding GainLossValueColor, Mode=TwoWay, Converter={StaticResource nullBrushConverter}}"
+                                       TextElement.FontSize="15" 
+                                       Margin="118,-25,0,0"/>
+
+                            <Button Name="RemoveTicker" 
+                                    Command="{Binding DataContext.RemoveTickerICommand, Mode=OneWay, RelativeSource={RelativeSource AncestorType=ListBox}}" 
+                                    CommandParameter="{Binding}" 
+                                    Height="20" Width="20"  
+                                    Background="#5d6880" 
+                                    Content="X" 
+                                    IsEnabled="True" 
+                                    Margin="245,-28,0,0">
+                                
+                            </Button>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </ScrollViewer>
+
+
 
 
 
     </Grid>
+    
 </Window>
