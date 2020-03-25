@@ -13,6 +13,7 @@ using System.Xml;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace ExcelStockScraper.Controllers
 {
@@ -118,7 +119,7 @@ namespace ExcelStockScraper.Controllers
         private static List<string> _excelUpdateString;
         ObservableCollection<string> _userTickerInput;
         string loggingText = string.Empty;
-        private string _loggingTextString;
+        string _loggingTextString = string.Empty;
         
         private string stockValueElement = "//span[@class='Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)']";
         private string stockGainLossElement = "//span[starts-with(@class, 'Trsdu(0.3s) Fw(500) Pstart(10px) Fz(24px)')]";
@@ -274,8 +275,8 @@ namespace ExcelStockScraper.Controllers
         public StockSiteScraperController()
         {
             XmlDocument = new XmlDocument();
-            //worker = CreateBackgroundWorker();
-            //worker.RunWorkerAsync();
+            worker = CreateBackgroundWorker();
+            worker.RunWorkerAsync();
             XmlDocument.Load(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
             TickerCollection = new ObservableCollection<StockData>();
             ExcelDataCollection = new ObservableCollection<ExcelData>();
@@ -306,16 +307,27 @@ namespace ExcelStockScraper.Controllers
             }
 
         }
+
+
         public void PullTickerData(string ticker, int i)
         {
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            //doc = web.Load("https://finance.yahoo.com/quote/" + ticker + "/");
 
-            var loadPage = Task.Run(() => web.Load("https://finance.yahoo.com/quote/" + ticker + "/"));
-            doc = loadPage.Result;
-            TickerCollection[i].CurrentValue = doc.DocumentNode.SelectSingleNode(stockValueElement).InnerHtml;
-            TickerCollection[i].GainLossValue = doc.DocumentNode.SelectSingleNode(stockGainLossElement).InnerHtml;
-            TickerCollection[i].GainLossValueColor = GainLossValueColorParse(TickerCollection[i].GainLossValue);
+            try
+            {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                //doc = web.Load("https://finance.yahoo.com/quote/" + ticker + "/");
+
+                var loadPage = Task.Run(() => web.Load("https://finance.yahoo.com/quote/" + ticker + "/"));
+                doc = loadPage.Result;
+                TickerCollection[i].CurrentValue = doc.DocumentNode.SelectSingleNode(stockValueElement).InnerHtml;
+                TickerCollection[i].GainLossValue = doc.DocumentNode.SelectSingleNode(stockGainLossElement).InnerHtml;
+                TickerCollection[i].GainLossValueColor = GainLossValueColorParse(TickerCollection[i].GainLossValue);
+            }
+            catch(Exception ex)
+            {
+
+            }
+
         }
 
         public string GainLossValueColorParse(string gainLossValue)
@@ -329,10 +341,7 @@ namespace ExcelStockScraper.Controllers
                 return "Green";
             }
             return "LightGray";
-            
-        }
-
-        
+        }        
 
 
         public async Task AddTickersToCollection(string keyName, string tickerExcelRow, string tickerExcelColumn)
@@ -386,7 +395,7 @@ namespace ExcelStockScraper.Controllers
             }
             catch (Exception ex)
             {
-
+                LoggingTextString = ex.ToString();
             }
 
         }
@@ -430,9 +439,9 @@ namespace ExcelStockScraper.Controllers
                 {
                     foreach (StockData stockData in TickerCollection)
                     {
-                        loggingText = loggingText + " " + stockData.Ticker + ": " + stockData.CurrentValue;
+                        LoggingTextString = LoggingTextString + " " + stockData.Ticker + ": " + stockData.CurrentValue;
                     }
-                    loggingText = loggingText + "\n";
+                    LoggingTextString = LoggingTextString + "\n";
 
                     count++;
                 }
@@ -443,7 +452,7 @@ namespace ExcelStockScraper.Controllers
                 }
                 
             }
-            return loggingText;
+            return LoggingTextString;
         }
         #endregion
 

@@ -29,6 +29,7 @@ D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\bi
 D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\bin\x64\Debug\System.Runtime.CompilerServices.Unsafe.xml
 D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\obj\x64\Debug\MainWindow.g.cs
 D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\obj\x64\Debug\App.g.cs
+D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\obj\x64\Debug\GeneratedInternalTypeHelper.g.cs
 D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\obj\x64\Debug\ExcelStockScraper_MarkupCompile.cache
 D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\obj\x64\Debug\ExcelStockScraper_MarkupCompile.lref
 D:\Development Projects\Stock Scraper WPF\Excel-Stock-Scraper-WPF-Application\obj\x64\Debug\MainWindow.baml

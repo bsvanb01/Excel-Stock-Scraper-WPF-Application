@@ -11,6 +11,7 @@ using Excel = Microsoft.Office.Interop.Excel;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Xml;
+using System.Threading;
 
 namespace ExcelStockScraper
 {
@@ -212,37 +213,10 @@ namespace ExcelStockScraper
         public StockSiteScraperController StockSiteScraperController
         { get; set; }
 
-
-        private BackgroundWorker CreateBackgroundWorker()
+        public void OnPropertyChanged(string propertyName)
         {
-            var bw = new BackgroundWorker();
-            bw.DoWork += worker_DoWork;
-            bw.RunWorkerCompleted += worker_RunWorkerCompleted;
-            return bw;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
-        private void worker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            oExcelApp = (Excel.Application)Marshal.GetActiveObject("Excel.Application");
-            oExcelApp.Visible = true;
-            wb = oExcelApp.ActiveWorkbook;
-            oSheet = oExcelApp.ActiveSheet;
-
-            while (!worker.CancellationPending)
-            {
-                ActiveColumn = oSheet.Application.ActiveCell.Column;
-                ActiveRow = oSheet.Application.ActiveCell.Row;
-            }
-
-
-        }
-
-        private void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            ActiveColumn = ActiveColumn;
-            ActiveRow = ActiveRow;
-        }
-
 
 
         public void MainMethod()
@@ -256,8 +230,9 @@ namespace ExcelStockScraper
                     if (TickerCollection.Count >= 0)
                     {
                         control.UpdateTickerData();
+                        TryUntilSuccess(() => { UpdateExcelCellData(); });
                         //UpdateExcelCellData();
-                        //LoggingText = control.LoggingText();
+                        LoggingText = control.LoggingText();
                     }
                 }
             }
@@ -266,14 +241,50 @@ namespace ExcelStockScraper
                 Console.WriteLine(ex);
             }
 
-            
-
         }
 
-        public void OnPropertyChanged(string propertyName)
+
+        #region Background Worker methods
+        private BackgroundWorker CreateBackgroundWorker()
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            var bw = new BackgroundWorker();
+            bw.DoWork += worker_DoWork;
+            bw.RunWorkerCompleted += worker_RunWorkerCompleted;
+            return bw;
         }
+
+        private void worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            try
+            {
+                oExcelApp = (Excel.Application)Marshal.GetActiveObject("Excel.Application");
+                oExcelApp.Visible = true;
+                wb = oExcelApp.ActiveWorkbook;
+                oSheet = oExcelApp.ActiveSheet; 
+                while (!worker.CancellationPending)
+                {
+                    ActiveColumn = oSheet.Application.ActiveCell.Column;
+                    ActiveRow = oSheet.Application.ActiveCell.Row;
+                }
+            }
+            catch(Exception ex)
+            {
+                LoggingText = ex.ToString();
+            }
+
+
+
+        }
+
+        private void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            ActiveColumn = ActiveColumn;
+            ActiveRow = ActiveRow;
+        }
+
+
+        #endregion
+
 
         //Keep in MainExecutingClass.cs for executing on load
         public void CheckForConfigSettings()
@@ -311,31 +322,45 @@ namespace ExcelStockScraper
             for (int i = 0; i < TickerCollection.Count; i++)
             {
                 //PullTickerData(TickerCollection[i].Ticker);
-                if (TickerCollection.Any(x => x.Ticker == ComboBoxInsertSelection))
+                if (TickerCollection[i].Ticker == ComboBoxInsertSelection)
                 {
                     AddCellCoordToConfigSettings();
                     oSheet.Cells[ActiveRow, ActiveColumn] = TickerCollection[i].CurrentValue;
+                    break;
                 }
+                
             }
             //oSheet.Cells[ActiveRow, ActiveColumn] = ComboBoxInsertSelection;
 
-            //Make changes to config
         }
 
         public void UpdateExcelCellData()
         {
-            for (int i = 0; i < TickerCollection.Count; i++)
+            try
             {
-                //PullTickerData(TickerCollection[i].Ticker);
-                if (TickerCollection.Any(x => x.Ticker == TickerCollection[i].Ticker))
+                for (int i = 0; i < TickerCollection.Count; i++)
                 {
-                    if(StockDataItemHasCoord() == true)
+                    int rowCoord = Int16.Parse(TickerCollection[i].TickerExcelRow);
+                    int columnCoord = Int16.Parse(TickerCollection[i].TickerExcelColumn);
+                    if (TickerCollection.Any(x => x.Ticker == TickerCollection[i].Ticker))
                     {
-                        oSheet.Cells[Int16.Parse(TickerCollection[i].TickerExcelRow), Int16.Parse(TickerCollection[i].TickerExcelRow)] = TickerCollection[i].CurrentValue;
+                        if (StockDataItemHasCoord() == true)
+                        {
+                            if(rowCoord != 0 || columnCoord != 0)
+                            {
+                                oSheet.Cells[rowCoord, columnCoord] = TickerCollection[i].CurrentValue;
+                            }
+                            
+                        }
+
                     }
-                    
                 }
             }
+            catch(Exception ex)
+            {
+                LoggingText = ex.ToString();
+            }
+
         }
 
         //create method to write to config
@@ -345,37 +370,29 @@ namespace ExcelStockScraper
             try
             {
                 var xmlElement = control.XmlDocument.DocumentElement;
-                //var xmlNodeList = xmlElement.SelectNodes("//Ticker");
                 var xmlNodeList = xmlElement.GetElementsByTagName("Ticker");
 
-                
-                //var nodeRegion = control.XmlDocument.CreateElement("Ticker");
-                //nodeRegion.SetAttribute("name", ticker);
                 foreach(XmlNode node in xmlNodeList)
                 {
                     string name = node.Attributes["Name"].InnerText;
 
                     if(name == ComboBoxInsertSelection)
                     {
-                        var excelColumnValue = control.XmlDocument.CreateAttribute("ExcelColumnValue");
                         var excelRowValue = control.XmlDocument.CreateAttribute("ExcelRowValue");
+                        var excelColumnValue = control.XmlDocument.CreateAttribute("ExcelColumnValue");
                         excelColumnValue.Value = ActiveColumn.ToString();
                         excelRowValue.Value = ActiveRow.ToString();
                         node.Attributes.Append(excelColumnValue);
                         node.Attributes.Append(excelRowValue);
-                        //xmlElement.SetAttribute("ExcelColumnValue", ActiveColumn.ToString());
-                        //xmlElement.SetAttribute("ExcelRowValue", ActiveRow.ToString());
                     }
                     
                 }
 
-
-                //control.XmlDocument.SelectSingleNode("//savedTickers/tickers").AppendChild(nodeRegion);
                 control.SaveAndRefresh("savedTickers/tickers");
             }
             catch (Exception ex)
             {
-
+                LoggingText = ex.ToString();
             }
 
         }
@@ -415,13 +432,13 @@ namespace ExcelStockScraper
 
                                 if (!TickerCollection.Any(x => x.Ticker == ticker))
                                 {
-                                    control.AddTickersToCollection(UserTextInput.ToUpper(),"","");
+                                    control.AddTickersToCollection(UserTextInput.ToUpper(),0.ToString(),0.ToString());
                                 }
                             }
                         }
                         else
                         {
-                            control.AddTickersToCollection(UserTextInput.ToUpper(),"","");
+                            control.AddTickersToCollection(UserTextInput.ToUpper(), 0.ToString(),  0.ToString());
                         }
                         control.AddToConfigSettings(UserTextInput.ToUpper());
                     }
@@ -437,16 +454,50 @@ namespace ExcelStockScraper
 
         public ObservableCollection<StockData> RemoveTickerCommand()
         {
-            control.RemoveFromConfigSettings(SelectedItemToRemove);
-            control.UserTickerInput.Remove(SelectedItemToRemove.Ticker);
-            TickerCollection.Remove(SelectedItemToRemove);
+            try
+            {
+                control.RemoveFromConfigSettings(SelectedItemToRemove);
+                control.UserTickerInput.Remove(SelectedItemToRemove.Ticker);
+                TickerCollection.Remove(SelectedItemToRemove);
 
+                
+            }
+            catch(Exception ex)
+            {
+                LoggingText = ex.ToString();
+            }
             return TickerCollection;
         }
 
         async Task RunTaskASync()
         {
             await Task.Run(() => MainMethod());
+        }
+
+
+        private void TryUntilSuccess(Action action)
+        {
+            bool success = false;
+            while (!success)
+            {
+                try
+                {
+                    action();
+                    success = true;
+                }
+                catch (COMException ex)
+                {
+                    if ((ex.ErrorCode & 0xFFFF) == 0x800A03EC)
+                    {
+                        Thread.Sleep(10);
+                        success = false;
+                    }
+                    else
+                    {
+                        throw ex;
+                    }
+                }
+            }
         }
 
 

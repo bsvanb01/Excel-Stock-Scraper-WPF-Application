@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:ExcelStockScraper.Controllers"
         xmlns:converter="clr-namespace:ExcelStockScraper.Handlers"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="600"
+        Title="MainWindow" Height="450" Width="650" ResizeMode="NoResize"
         Background="#252932"
         DataContext="{Binding RelativeSource={RelativeSource Self}}">
     <Window.Resources>
@@ -32,7 +32,7 @@
             <TextBox x:Name="LoggingText"
                  IsReadOnly="true"
                  TextWrapping="Wrap"
-                 VerticalScrollBarVisibility="Visible"
+                 VerticalScrollBarVisibility="Auto"
                  Text="{Binding LoggingText}"
                  TextElement.Foreground="White"
                  BorderBrush="White"
@@ -59,12 +59,12 @@
         <DockPanel Grid.RowSpan="3" Grid.ColumnSpan="3">
             <Border BorderThickness="1" BorderBrush="White">
                 <StackPanel Orientation="Horizontal">
-                    <ComboBox Height="25" Width="100" FontSize="15" ItemsSource="{Binding TickerComboBoxCollection}" SelectedItem="{Binding ComboBoxInsertSelection}"/>
-                    <Button Content="Insert" Height="25" Width="50" Command="{Binding InsertToExcelCellICommand}"/>
-                    <Label Content="Column Selected" TextElement.Foreground="White" Margin="-105,0,0,270"/>
-                    <Label Content="Row Selected" TextElement.Foreground="White" Margin="40,0,0,270"/>
-                    <Label Content="{Binding ActiveColumn, UpdateSourceTrigger=PropertyChanged}" TextElement.Foreground="White" Margin="-180,20,150,250"/>
-                    <Label Content="{Binding ActiveRow, UpdateSourceTrigger=PropertyChanged}" TextElement.Foreground="LightGray" Margin="-50,20,0,250"/>
+                    <Label Content="Row Selected" TextElement.Foreground="White" Margin="50,0,0,270"/>
+                    <Label Content="Column Selected" TextElement.Foreground="White" Margin="50,0,0,270"/>
+                    <Label Content="{Binding ActiveRow, UpdateSourceTrigger=PropertyChanged}" TextElement.Foreground="White" Margin="-202,20,150,250"/>
+                    <Label Content="{Binding ActiveColumn, UpdateSourceTrigger=PropertyChanged}" TextElement.Foreground="LightGray" Margin="-58,20,0,250"/>
+                    <ComboBox Height="25" Width="100" FontSize="15" ItemsSource="{Binding TickerComboBoxCollection}" SelectedItem="{Binding ComboBoxInsertSelection}" Margin="-300,-150,0,0"/>
+                    <Button Content="Insert" Height="25" Width="50" Command="{Binding InsertToExcelCellICommand}" Margin="-140,-150,0,0"/>
                 </StackPanel>
             </Border>
         </DockPanel>
@@ -99,13 +99,13 @@
                                        Text="{Binding CurrentValue}" 
                                        TextElement.FontSize="15" 
                                        TextElement.Foreground="White" 
-                                       Margin="50,-25,0,0"/>
+                                       Margin="65,-25,0,0"/>
                             
                             <TextBlock Name="GainLossValue" Height="25" 
                                        Text="{Binding GainLossValue}"
                                        TextElement.Foreground="{Binding GainLossValueColor, Mode=TwoWay, Converter={StaticResource nullBrushConverter}}"
                                        TextElement.FontSize="15" 
-                                       Margin="118,-25,0,0"/>
+                                       Margin="140,-25,0,0"/>
 
                             <Button Name="RemoveTicker" 
                                     Command="{Binding DataContext.RemoveTickerICommand, Mode=OneWay, RelativeSource={RelativeSource AncestorType=ListBox}}" 
@@ -114,7 +114,7 @@
                                     Background="#5d6880" 
                                     Content="X" 
                                     IsEnabled="True" 
-                                    Margin="245,-28,0,0">
+                                    Margin="280,-28,0,0">
                                 
                             </Button>
                         </StackPanel>

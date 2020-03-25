@@ -10,9 +10,9 @@ namespace ExcelStockScraper
         public MainWindow()
         {
             InitializeComponent();
-            this.Show();
             DataContext = new MainExecutingClass();
-            
+            this.Show();
+
         }
     }
 }
