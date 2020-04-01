@@ -27,7 +27,6 @@ M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Applicatio
 M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\bin\x86\Debug\HtmlAgilityPack.pdb
 M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\bin\x86\Debug\HtmlAgilityPack.xml
 M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\bin\x86\Debug\System.Runtime.CompilerServices.Unsafe.xml
-M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\ExcelStockScraper.csprojAssemblyReference.cache
 M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\MainWindow.g.cs
 M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\App.g.cs
 M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\ExcelStockScraper_MarkupCompile.cache
@@ -40,3 +39,7 @@ M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Applicatio
 M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\ExcelStockScraper.exe
 M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\ExcelStockScraper.pdb
 M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\GeneratedInternalTypeHelper.g.cs
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\Interop.EnvDTE.dll
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\Interop.EnvDTE80.dll
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\ExcelStockScraper.csproj.ResolveComReference.cache
+M:\PI Idea\Stock Data Scraper\StockScraper v2\Excel-Stock-Scraper-WPF-Application\obj\x86\Debug\ExcelStockScraper.csprojAssemblyReference.cache

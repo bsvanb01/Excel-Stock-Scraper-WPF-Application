@@ -31,6 +31,7 @@ namespace ExcelStockScraper
         private int _activeColumn;
         private int _activeRow;
         private bool _isIntermediate;
+        bool insertClicked = false;
         private StockData _selectedItemToRemove;
 
         private BackgroundWorker worker;
@@ -231,7 +232,6 @@ namespace ExcelStockScraper
                     {
                         control.UpdateTickerData();
                         TryUntilSuccess(() => { UpdateExcelCellData(); });
-                        //UpdateExcelCellData();
                         LoggingText = control.LoggingText();
                     }
                 }
@@ -259,17 +259,25 @@ namespace ExcelStockScraper
             {
                 oExcelApp = (Excel.Application)Marshal.GetActiveObject("Excel.Application");
                 oExcelApp.Visible = true;
+                oExcelApp.ScreenUpdating = true;
+                oExcelApp.Interactive = true;
                 wb = oExcelApp.ActiveWorkbook;
-                oSheet = oExcelApp.ActiveSheet; 
+                oSheet = oExcelApp.ActiveSheet;
+                
                 while (!worker.CancellationPending)
                 {
                     ActiveColumn = oSheet.Application.ActiveCell.Column;
                     ActiveRow = oSheet.Application.ActiveCell.Row;
                 }
             }
-            catch(Exception ex)
+            catch(COMException ex)
             {
-                LoggingText = ex.ToString();
+                if(ex is COMException)
+                {
+                    LoggingText = ex.ToString();
+                }
+
+                
             }
 
 
@@ -319,19 +327,18 @@ namespace ExcelStockScraper
 
         public void InsertToExcelCellCommand()
         {
+            insertClicked = true;
             for (int i = 0; i < TickerCollection.Count; i++)
             {
-                //PullTickerData(TickerCollection[i].Ticker);
                 if (TickerCollection[i].Ticker == ComboBoxInsertSelection)
                 {
                     AddCellCoordToConfigSettings();
                     oSheet.Cells[ActiveRow, ActiveColumn] = TickerCollection[i].CurrentValue;
+                    insertClicked = false;
                     break;
                 }
                 
             }
-            //oSheet.Cells[ActiveRow, ActiveColumn] = ComboBoxInsertSelection;
-
         }
 
         public void UpdateExcelCellData()
@@ -375,8 +382,14 @@ namespace ExcelStockScraper
                 foreach(XmlNode node in xmlNodeList)
                 {
                     string name = node.Attributes["Name"].InnerText;
-
-                    if(name == ComboBoxInsertSelection)
+                    string currentExcelColumnValue = node.Attributes["ExcelColumnValue"].Value;
+                    string currentExcelRowValue = node.Attributes["ExcelRowValue"].Value;
+                    if (currentExcelColumnValue == ActiveColumn.ToString() && currentExcelRowValue == ActiveRow.ToString())
+                    {
+                        control.XmlDocument.SelectSingleNode("//savedTickers/tickers/Ticker[@Name=\'" + name + "\']").Attributes["ExcelColumnValue"].Value = 0.ToString();
+                        control.XmlDocument.SelectSingleNode("//savedTickers/tickers/Ticker[@Name=\'" + name + "\']").Attributes["ExcelRowValue"].Value = 0.ToString();
+                    }
+                    if (name == ComboBoxInsertSelection)
                     {
                         var excelRowValue = control.XmlDocument.CreateAttribute("ExcelRowValue");
                         var excelColumnValue = control.XmlDocument.CreateAttribute("ExcelColumnValue");
@@ -385,10 +398,10 @@ namespace ExcelStockScraper
                         node.Attributes.Append(excelColumnValue);
                         node.Attributes.Append(excelRowValue);
                     }
-                    
+                    control.SaveAndRefresh("savedTickers/tickers");
                 }
 
-                control.SaveAndRefresh("savedTickers/tickers");
+                
             }
             catch (Exception ex)
             {
@@ -487,7 +500,7 @@ namespace ExcelStockScraper
                 }
                 catch (COMException ex)
                 {
-                    if ((ex.ErrorCode & 0xFFFF) == 0x800A03EC)
+                    if ((ex.ErrorCode & 0xFFFF) == 0x800A03EC || (ex.ErrorCode & 0xFFFF) == 0x8001010A)
                     {
                         Thread.Sleep(10);
                         success = false;

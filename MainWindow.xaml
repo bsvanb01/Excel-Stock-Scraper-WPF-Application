@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:ExcelStockScraper.Controllers"
         xmlns:converter="clr-namespace:ExcelStockScraper.Handlers"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="650" ResizeMode="NoResize"
+        Title="MainWindow" Height="450" Width="650" ResizeMode="CanMinimize"
         Background="#252932"
         DataContext="{Binding RelativeSource={RelativeSource Self}}">
     <Window.Resources>
@@ -17,14 +17,14 @@
             <ColumnDefinition Width="100"/>
             <ColumnDefinition Width="100"/>
             <ColumnDefinition Width="100"/>
-            <ColumnDefinition Width="100*"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
             <RowDefinition Height="50"/>
             <RowDefinition Height="100"/>
             <RowDefinition Height="150"/>
-            <RowDefinition Height="100*"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="4"

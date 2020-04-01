@@ -275,8 +275,8 @@ namespace ExcelStockScraper.Controllers
         public StockSiteScraperController()
         {
             XmlDocument = new XmlDocument();
-            worker = CreateBackgroundWorker();
-            worker.RunWorkerAsync();
+            //worker = CreateBackgroundWorker();
+            //worker.RunWorkerAsync();
             XmlDocument.Load(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile);
             TickerCollection = new ObservableCollection<StockData>();
             ExcelDataCollection = new ObservableCollection<ExcelData>();
@@ -297,12 +297,9 @@ namespace ExcelStockScraper.Controllers
         {
             for (int i = 0; i < TickerCollection.Count; i++)
             {
-                //PullTickerData(TickerCollection[i].Ticker);
                 if (TickerCollection.Any(x => x.Ticker == TickerCollection[i].Ticker))
                 {
-                    //TickerCollection[i].CurrentValue = 
                     PullTickerData(TickerCollection[i].Ticker, i);
-
                 }
             }
 
@@ -325,7 +322,11 @@ namespace ExcelStockScraper.Controllers
             }
             catch(Exception ex)
             {
-
+                if(ex is WebException || ex is NullReferenceException || ex is IndexOutOfRangeException || ex is ArgumentOutOfRangeException || ex is AggregateException)
+                {
+                    return;
+                }
+                throw;
             }
 
         }
@@ -355,29 +356,6 @@ namespace ExcelStockScraper.Controllers
         }
 
         #region ConfigSettings
-        //public void CheckForConfigSettings()
-        //{
-        //    var config = ConfigurationManager.OpenExeConfiguration(System.Reflection.Assembly.GetExecutingAssembly().Location);
-        //    var savedTickers = ConfigurationManager.GetSection("savedTickers") as ConfigurationHandler;
-        //    if(savedTickers == null)
-        //    {
-
-        //    }
-        //    var tickers = savedTickers.Tickers;
-        //    if (tickers.Count != 0)
-        //    {
-        //        foreach (TickerElement key in tickers)
-        //        {
-        //            UserTickerInput.Add(key.Name);
-        //            AddTickersToCollection(key.Name);
-        //        }
-        //    }
-        //    else
-        //    {
-
-        //    }
-
-        //}
         
         public void AddToConfigSettings(string ticker)
         {
@@ -387,8 +365,6 @@ namespace ExcelStockScraper.Controllers
                 nodeRegion.SetAttribute("Name", ticker);
                 nodeRegion.SetAttribute("ExcelRowValue", 0.ToString());
                 nodeRegion.SetAttribute("ExcelColumnValue", 0.ToString());
-
-
 
                 XmlDocument.SelectSingleNode("//savedTickers/tickers").AppendChild(nodeRegion);
                 SaveAndRefresh("savedTickers/tickers");
@@ -489,13 +465,19 @@ namespace ExcelStockScraper.Controllers
             oExcelApp = (Excel.Application)Marshal.GetActiveObject("Excel.Application");
             wb = oExcelApp.ActiveWorkbook;
             oSheet = oExcelApp.ActiveSheet;
-            
-            while(!worker.CancellationPending)
+            try
             {
-                ActiveColumn = oSheet.Application.ActiveCell.Column;
-                ActiveRow = oSheet.Application.ActiveCell.Row;
+                while (!worker.CancellationPending)
+                {
+                    ActiveColumn = oSheet.Application.ActiveCell.Column;
+                    ActiveRow = oSheet.Application.ActiveCell.Row;
+                }
             }
 
+            catch(Exception ex)
+            {
+                ex.ToString();
+            }
             
         }
 
@@ -513,14 +495,6 @@ namespace ExcelStockScraper.Controllers
                 worker.RunWorkerAsync();
             }
 
-            //var activeColumn = oSheet.Application.ActiveCell.Column;
-            //var activeRow = oSheet.Application.ActiveCell.Row;
-
-            //if (activeColumn != 0 && activeRow != 0)
-            //{
-            //    ActiveColumn = activeColumn;
-            //    ActiveRow = activeRow;
-            //}
         }
 
         private BackgroundWorker CreateBackgroundWorker()
@@ -530,12 +504,6 @@ namespace ExcelStockScraper.Controllers
             bw.RunWorkerCompleted += worker_RunWorkerCompleted;
             return bw;
         }
-
-
-
-
-
-
 
 
 
